@@ -7,8 +7,8 @@ function formatColones(value) {
   return `₡${Number(value ?? 0).toLocaleString('es-CR')}`
 }
 
-// Número de SINPE Móvil de Los Pirchas — actualizar con el número real del negocio
-const SINPE_NUMBER = '0000-0000'
+// Número de SINPE Móvil / WhatsApp de Los Pirchas
+const SINPE_NUMBER = '8892-7759'
 
 export default function Checkout({ onBack, onSuccess }) {
   const { items, total, clear } = useCart()
@@ -91,7 +91,10 @@ export default function Checkout({ onBack, onSuccess }) {
         </label>
 
         <div className="payment-box">
-          <h3>Pago por SINPE Móvil</h3>
+          <div className="payment-box__header">
+            <span className="sinpe-badge">SINPE</span>
+            <h3>Pago por SINPE Móvil</h3>
+          </div>
           <p>
             Transferí <strong className="mono">{formatColones(total)}</strong> al número{' '}
             <strong className="mono">{SINPE_NUMBER}</strong> a nombre de Los Pirchas.
