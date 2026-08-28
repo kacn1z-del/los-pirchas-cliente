@@ -5,6 +5,7 @@ import Menu from './components/Menu'
 import CartDrawer from './components/CartDrawer'
 import Checkout from './components/Checkout'
 import OrderStatus from './components/OrderStatus'
+import SocialLinks from './components/SocialLinks'
 import './App.css'
 
 export default function App() {
@@ -48,6 +49,8 @@ export default function App() {
             />
           )}
         </main>
+
+        {view === 'menu' && <SocialLinks />}
 
         {view === 'menu' && (
           <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} onCheckout={handleCheckout} />
