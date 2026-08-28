@@ -574,3 +574,73 @@
     font-size: 32px;
   }
 }
+
+/* SINPE badge */
+.payment-box__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.sinpe-badge {
+  background: #003da5;
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  padding: 4px 9px;
+  border-radius: 5px;
+}
+
+/* Social footer */
+.social-footer {
+  max-width: 720px;
+  margin: 10px auto 0;
+  padding: 28px 18px 40px;
+  text-align: center;
+  border-top: 1px solid var(--line);
+}
+
+.social-footer__title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-600);
+  margin-bottom: 14px;
+}
+
+.social-footer__icons {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.social-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.social-icon--whatsapp {
+  background: var(--whatsapp-green);
+}
+
+.social-icon--facebook {
+  background: #1877f2;
+}
+
+.social-icon--instagram {
+  background: radial-gradient(circle at 30% 110%, #fdf497, #fd5949 45%, #d6249f 70%, #285aeb);
+}
+
+.social-footer__meta {
+  font-size: 12px;
+  color: var(--ink-400);
+}
