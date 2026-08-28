@@ -11,11 +11,14 @@
   --ink-900: #241c15;
   --ink-600: #6b5945;
   --ink-400: #8f7c68;
+  --amber-500: #e8792b;
+  --red-500: #c92f1c;
   --status-green: #3f9868;
   --whatsapp-green: #25d366;
   --whatsapp-green-dark: #1da851;
-  --glass-bg: rgba(255, 250, 242, 0.72);
-  --glass-border: rgba(255, 255, 255, 0.85);
+  --glass-bg: rgba(255, 250, 242, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-strong: rgba(255, 250, 242, 0.85);
 
   --font-display: 'Bricolage Grotesque', 'Sora', system-ui, sans-serif;
   --font-body: 'IBM Plex Sans', system-ui, sans-serif;
@@ -71,16 +74,12 @@ a {
   color: inherit;
 }
 
-input,
-textarea {
-  font-family: var(--font-body);
-}
-
 ::selection {
   background: var(--ember-400);
   color: var(--char-950);
 }
 
+/* Visible keyboard focus, kept everywhere */
 :focus-visible {
   outline: 2px solid var(--flame-600);
   outline-offset: 2px;
