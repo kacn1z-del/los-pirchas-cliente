@@ -7,6 +7,14 @@ function formatColones(value) {
   return `₡${Number(value ?? 0).toLocaleString('es-CR')}`
 }
 
+function slugify(text) {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+}
+
 export default function Menu() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
@@ -59,13 +67,29 @@ export default function Menu() {
     return acc
   }, {})
 
+  const categories = Object.keys(grouped)
+
+  const scrollTo = (id) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   return (
     <div className="menu">
-      {Object.entries(grouped).map(([categoria, platos]) => (
-        <section key={categoria} className="menu__section">
-          <h2 className="menu__category">{categoria}</h2>
+      <nav className="category-nav" aria-label="Categorías del menú">
+        {categories.map((cat) => (
+          <button key={cat} className="category-nav__chip" onClick={() => scrollTo(slugify(cat))}>
+            {cat}
+          </button>
+        ))}
+      </nav>
+
+      {categories.map((categoria) => (
+        <section key={categoria} id={slugify(categoria)} className="menu__section">
+          <div className="ribbon">
+            <span className="ribbon__text">{categoria}</span>
+          </div>
           <div className="menu__grid">
-            {platos.map((plato) => {
+            {grouped[categoria].map((plato) => {
               const disponible = plato.disponible !== false
               return (
                 <article key={plato.id} className={`dish-card ${!disponible ? 'is-disabled' : ''}`}>
@@ -78,8 +102,9 @@ export default function Menu() {
                     className="dish-card__add"
                     disabled={!disponible}
                     onClick={() => addItem(plato)}
+                    aria-label={`Agregar ${plato.nombre} al carrito`}
                   >
-                    {disponible ? 'Agregar al carrito' : 'No disponible'}
+                    {disponible ? '+ Agregar' : 'No disponible'}
                   </button>
                 </article>
               )
