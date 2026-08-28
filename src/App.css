@@ -57,6 +57,14 @@
   color: rgba(251, 246, 236, 0.7);
 }
 
+.hero__hours {
+  position: relative;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gold-200);
+}
+
 /* Sticky condensed bar */
 .bar {
   position: sticky;
@@ -619,13 +627,14 @@
 }
 
 .social-icon {
-  width: 40px;
-  height: 40px;
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
+  box-shadow: 0 4px 10px rgba(46, 33, 23, 0.18);
 }
 
 .social-icon--whatsapp {
@@ -638,6 +647,17 @@
 
 .social-icon--instagram {
   background: radial-gradient(circle at 30% 110%, #fdf497, #fd5949 45%, #d6249f 70%, #285aeb);
+}
+
+.social-footer__phone {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--whatsapp-green-dark);
+  text-decoration: none;
+  margin-bottom: 8px;
 }
 
 .social-footer__meta {
