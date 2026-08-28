@@ -682,6 +682,72 @@
   font-size: 12px;
 }
 
+.payment-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.payment-methods__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-600);
+}
+
+.payment-methods__options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.payment-methods__chip {
+  position: relative;
+  flex: 1;
+  min-width: 96px;
+  background: var(--cream-100);
+  border: 1.5px solid var(--line-strong);
+  color: var(--ink-900);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 12px 10px;
+  border-radius: var(--radius-sm);
+  text-align: center;
+}
+
+.payment-methods__chip.is-active {
+  background: var(--ember-700);
+  border-color: var(--ember-700);
+  color: var(--cream-100);
+}
+
+.payment-methods__chip:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.payment-methods__soon {
+  display: block;
+  margin-top: 3px;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ink-400);
+}
+
+.btn-whatsapp--block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  border: none;
+  margin-bottom: 0;
+}
+
+.btn-whatsapp--block:disabled {
+  opacity: 0.5;
+}
+
 .form-error {
   color: var(--ember-700);
   font-size: 13px;
