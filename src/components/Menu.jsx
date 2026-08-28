@@ -92,16 +92,9 @@ export default function Menu() {
             {grouped[categoria].map((plato) => {
               const disponible = plato.disponible !== false
               return (
-                <article key={plato.id} className={`dish-card ${!disponible ? 'is-disabled' : ''} ${plato.imagen ? 'has-image' : ''}`}>
-                  {plato.imagen && (
-                    <div className="dish-card__image-wrap">
-                      <img
-                        src={plato.imagen}
-                        alt={plato.nombre}
-                        className="dish-card__image"
-                        loading="lazy"
-                      />
-                    </div>
+                <article key={plato.id} className={`dish-card ${!disponible ? 'is-disabled' : ''}`}>
+                  {plato.imagenUrl && (
+                    <img src={plato.imagenUrl} alt={plato.nombre} className="dish-card__img" loading="lazy" />
                   )}
                   <div className="dish-card__top">
                     <h3>{plato.nombre}</h3>
@@ -125,4 +118,3 @@ export default function Menu() {
     </div>
   )
 }
-
