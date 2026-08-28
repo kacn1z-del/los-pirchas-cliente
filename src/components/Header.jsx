@@ -19,6 +19,7 @@ export default function Header({ onCartClick }) {
         <p className="hero__eyebrow">Restaurante y Chicharronera</p>
         <h1 className="hero__title">Los Pirchas</h1>
         <p className="hero__sub">San Luis, Acosta — diagonal a Unifami</p>
+        <p className="hero__hours">Lun–Vie 11am–10pm · Mar cerrado</p>
       </section>
 
       <header className={`bar ${scrolled ? 'is-condensed' : ''}`}>
@@ -34,4 +35,3 @@ export default function Header({ onCartClick }) {
     </>
   )
 }
-
