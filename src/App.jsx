@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { CartProvider } from './CartContext'
 import Header from './components/Header'
 import Menu from './components/Menu'
+import ReviewsSection from './components/ReviewsSection'
 import CartDrawer from './components/CartDrawer'
 import Checkout from './components/Checkout'
 import OrderStatus from './components/OrderStatus'
@@ -49,6 +50,8 @@ export default function App() {
             />
           )}
         </main>
+
+        {view === 'menu' && <ReviewsSection />}
 
         {view === 'menu' && <SocialLinks />}
 
