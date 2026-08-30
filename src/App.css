@@ -914,3 +914,52 @@
     border: none;
   }
 }
+
+/* Payment method selector */
+.payment-methods__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-600);
+  margin-bottom: 8px;
+}
+
+.payment-methods__chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.payment-chip {
+  background: var(--cream-100);
+  border: 1.5px solid var(--line-strong);
+  color: var(--ink-900);
+  padding: 9px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.payment-chip.is-active {
+  background: var(--ember-700);
+  border-color: var(--ember-700);
+  color: var(--cream-050);
+}
+
+.payment-chip:disabled {
+  opacity: 0.5;
+}
+
+.payment-chip__note {
+  font-size: 10px;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.btn-whatsapp--block {
+  width: 100%;
+  text-align: center;
+  box-sizing: border-box;
+}
