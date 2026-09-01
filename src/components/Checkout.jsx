@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useCart } from '../CartContext'
@@ -10,10 +10,21 @@ function formatColones(value) {
 // Número de SINPE Móvil / WhatsApp de Los Pirchas
 const SINPE_NUMBER = '8892-7759'
 const WHATSAPP_ORDER_NUMBER = '8892-7759'
+const PAYPAL_LINK = 'https://paypal.me/lospirchas'
+// Tipo de cambio de referencia colón/dólar para sugerir el monto en USD.
+// Es aproximado (BCCR ronda los ₡450 por dólar) — Keny puede ajustarlo a mano
+// aquí de vez en cuando; el cliente igual puede corregir el monto a mano.
+const EXCHANGE_RATE_CRC_PER_USD = 450
+
+function estimateUsd(colones) {
+  if (!colones) return ''
+  return (colones / EXCHANGE_RATE_CRC_PER_USD).toFixed(2)
+}
 
 const PAYMENT_METHODS = [
   { key: 'efectivo', label: 'Efectivo' },
   { key: 'sinpe', label: 'SINPE Móvil' },
+  { key: 'paypal', label: 'PayPal / Tarjeta' },
   { key: 'tarjeta', label: 'Tarjeta', disabled: true, note: 'Próximamente' },
 ]
 
@@ -41,10 +52,22 @@ export default function Checkout({ onBack, onSuccess }) {
   const { items, total, clear } = useCart()
   const [form, setForm] = useState({ nombre: '', telefono: '', direccion: '', notas: '' })
   const [paymentMethod, setPaymentMethod] = useState('efectivo')
+  const [paypalAmount, setPaypalAmount] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
 
+  const paypalHref =
+    paypalAmount && Number(paypalAmount) > 0
+      ? `${PAYPAL_LINK}/${Number(paypalAmount).toFixed(2)}USD`
+      : null
+
   const update = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
+
+  useEffect(() => {
+    if (paymentMethod === 'paypal' && !paypalAmount) {
+      setPaypalAmount(estimateUsd(total))
+    }
+  }, [paymentMethod]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const isValid = form.nombre.trim() && form.telefono.trim() && form.direccion.trim() && items.length > 0
 
@@ -156,6 +179,69 @@ export default function Checkout({ onBack, onSuccess }) {
             <p className="payment-box__hint">
               Después de confirmar el pedido, mandanos el comprobante por WhatsApp para agilizar la
               entrega.
+            </p>
+          </div>
+        )}
+
+        {paymentMethod === 'paypal' && (
+          <div className="payment-box paypal-card">
+            <div className="payment-box__header">
+              <span className="paypal-badge">PayPal</span>
+              <h3>Realizar pago</h3>
+            </div>
+            <p>
+              Tu pedido es de <strong className="mono">{formatColones(total)}</strong>. Escribí el monto
+              en dólares y pagá de forma segura con PayPal.
+            </p>
+
+            <label className="paypal-amount">
+              Monto a pagar (USD)
+              <input
+                type="number"
+                inputMode="decimal"
+                min="0"
+                step="0.01"
+                value={paypalAmount}
+                onChange={(e) => setPaypalAmount(e.target.value)}
+                placeholder="Ej: 25.00"
+              />
+            </label>
+
+            <div className="paypal-buttons">
+              {paypalHref ? (
+                <a className="btn-paypal" href={paypalHref} target="_blank" rel="noreferrer">
+                  Pay with PayPal
+                </a>
+              ) : (
+                <span className="btn-paypal is-disabled">Pay with PayPal</span>
+              )}
+              {paypalHref ? (
+                <a className="btn-card" href={paypalHref} target="_blank" rel="noreferrer">
+                  💳 Debit or Credit Card
+                </a>
+              ) : (
+                <span className="btn-card is-disabled">💳 Debit or Credit Card</span>
+              )}
+            </div>
+
+            {!paypalHref && <p className="payment-box__hint">Escribí un monto para habilitar el pago.</p>}
+
+            <p className="paypal-powered">Powered by PayPal</p>
+
+            <div className="paypal-brands">
+              <span className="brand-pill brand-visa">VISA</span>
+              <span className="brand-pill brand-mastercard">Mastercard</span>
+              <span className="brand-pill brand-amex">AMEX</span>
+              <span className="brand-pill">Débito</span>
+              <span className="brand-pill brand-paypal">PayPal</span>
+            </div>
+
+            <p className="payment-box__hint">
+              No hace falta tener cuenta de PayPal: ahí mismo podés pagar con tarjeta de crédito o
+              débito como invitado.
+            </p>
+            <p className="payment-box__hint">
+              Después de pagar, mandanos el comprobante por WhatsApp para agilizar la entrega.
             </p>
           </div>
         )}
