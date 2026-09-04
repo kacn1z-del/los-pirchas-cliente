@@ -59,6 +59,7 @@ export default function Checkout({ onBack, onSuccess }) {
         clientAddress: form.direccion.trim(),
         notes: form.notas.trim() || null,
         restaurantName: 'Los Pirchas',
+        origen: 'cliente-web',
         items: items.map((i) => ({ nombre: i.nombre, precio: i.precio, qty: i.qty })),
         total,
         paymentMethod,
