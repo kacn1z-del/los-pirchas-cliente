@@ -43,6 +43,27 @@ function normalizeCategory(text) {
     .replace(/[\u0300-\u036f]/g, '')
 }
 
+// Horarios especiales según el menú físico:
+//   Plato Ejecutivo: lunes a viernes, 11 a.m. a 4 p.m.
+//   Noche de Bocas: lunes a jueves, 5 p.m. a 10 p.m.
+// Cualquier otra categoría no tiene restricción de horario.
+function disponibilidadPorHorario(categoria) {
+  const cat = normalizeCategory(categoria)
+  const now = new Date()
+  const dia = now.getDay() // 0=domingo … 6=sábado
+  const minutos = now.getHours() * 60 + now.getMinutes()
+
+  if (cat === normalizeCategory('Plato Ejecutivo')) {
+    const enHorario = dia >= 1 && dia <= 5 && minutos >= 11 * 60 && minutos < 16 * 60
+    return { disponible: enHorario, mensaje: 'Disponible lunes a viernes, 11 a.m. a 4 p.m.' }
+  }
+  if (cat === normalizeCategory('Noche de Bocas')) {
+    const enHorario = dia >= 1 && dia <= 4 && minutos >= 17 * 60 && minutos < 22 * 60
+    return { disponible: enHorario, mensaje: 'Disponible lunes a jueves, 5 p.m. a 10 p.m.' }
+  }
+  return { disponible: true, mensaje: null }
+}
+
 function sortCategories(categories) {
   const priority = CATEGORY_ORDER.map(normalizeCategory)
   return [...categories].sort((a, b) => {
@@ -123,38 +144,48 @@ export default function Menu() {
         ))}
       </nav>
 
-      {categories.map((categoria) => (
-        <section key={categoria} id={slugify(categoria)} className="menu__section">
-          <div className="ribbon">
-            <span className="ribbon__text">{categoria}</span>
-          </div>
-          <div className="menu__grid">
-            {grouped[categoria].map((plato) => {
-              const disponible = plato.disponible !== false
-              return (
-                <article key={plato.id} className={`dish-card ${!disponible ? 'is-disabled' : ''}`}>
-                  {plato.imagenUrl && (
-                    <img src={plato.imagenUrl} alt={plato.nombre} className="dish-card__img" loading="lazy" />
-                  )}
-                  <div className="dish-card__top">
-                    <h3>{plato.nombre}</h3>
-                    <span className="dish-card__price mono">{formatColones(plato.precio)}</span>
-                  </div>
-                  {plato.descripcion && <p className="dish-card__desc">{plato.descripcion}</p>}
-                  <button
-                    className="dish-card__add"
-                    disabled={!disponible}
-                    onClick={() => addItem(plato)}
-                    aria-label={`Agregar ${plato.nombre} al carrito`}
-                  >
-                    {disponible ? '+ Agregar' : 'No disponible'}
-                  </button>
-                </article>
-              )
-            })}
-          </div>
-        </section>
-      ))}
+      {categories.map((categoria) => {
+        const horario = disponibilidadPorHorario(categoria)
+        return (
+          <section key={categoria} id={slugify(categoria)} className="menu__section">
+            <div className="ribbon">
+              <span className="ribbon__text">{categoria}</span>
+            </div>
+            {horario.mensaje && !horario.disponible && (
+              <p className="menu__schedule-hint">⏰ {horario.mensaje}</p>
+            )}
+            <div className="menu__grid">
+              {grouped[categoria].map((plato) => {
+                const disponible = plato.disponible !== false && horario.disponible
+                return (
+                  <article key={plato.id} className={`dish-card ${!disponible ? 'is-disabled' : ''}`}>
+                    {plato.imagenUrl && (
+                      <img src={plato.imagenUrl} alt={plato.nombre} className="dish-card__img" loading="lazy" />
+                    )}
+                    <div className="dish-card__top">
+                      <h3>{plato.nombre}</h3>
+                      <span className="dish-card__price mono">{formatColones(plato.precio)}</span>
+                    </div>
+                    {plato.descripcion && <p className="dish-card__desc">{plato.descripcion}</p>}
+                    <button
+                      className="dish-card__add"
+                      disabled={!disponible}
+                      onClick={() => addItem(plato)}
+                      aria-label={`Agregar ${plato.nombre} al carrito`}
+                    >
+                      {plato.disponible === false
+                        ? 'No disponible'
+                        : !horario.disponible
+                        ? 'Fuera de horario'
+                        : '+ Agregar'}
+                    </button>
+                  </article>
+                )
+              })}
+            </div>
+          </section>
+        )
+      })}
     </div>
   )
 }
