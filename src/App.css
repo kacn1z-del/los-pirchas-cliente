@@ -65,7 +65,7 @@
   color: var(--gold-200);
 }
 
-/* Sticky condensed bar */
+/* Sticky bar (siempre visible desde que carga la página, con el carrito) */
 .bar {
   position: sticky;
   top: 0;
@@ -76,16 +76,6 @@
   padding: 12px 20px;
   background: var(--char-950);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  transform: translateY(-8px);
-  opacity: 0;
-  pointer-events: none;
-  transition: transform 0.2s ease, opacity 0.2s ease;
-}
-
-.bar.is-condensed {
-  transform: translateY(0);
-  opacity: 1;
-  pointer-events: auto;
 }
 
 .bar__brand {
@@ -208,7 +198,7 @@
 /* Category ribbon banner — echoes the printed menu's banner dividers */
 .menu__section {
   margin-bottom: 34px;
-  scroll-margin-top: 110px;
+  scroll-margin-top: 130px;
 }
 
 .ribbon {
