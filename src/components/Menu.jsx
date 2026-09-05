@@ -15,6 +15,46 @@ function slugify(text) {
     .replace(/[^a-z0-9]+/g, '-')
 }
 
+// Orden en que aparecen las categorías en el menú físico de Los Pirchas.
+// Cualquier categoría que no esté en esta lista (por ejemplo si se agrega
+// una nueva desde el panel admin) aparece al final, en el orden en que
+// llegó de Firestore, para no perderla de vista.
+const CATEGORY_ORDER = [
+  'Menú infantil',
+  'Especialidades Mexicanas',
+  'Bebidas',
+  'Otras Especialidades',
+  'Para Compartir',
+  'Entradas calientes',
+  'Arroces',
+  'Pastas',
+  'Casados con',
+  'Cortes especiales',
+  'Hamburguesas',
+  'Plato Ejecutivo',
+  'Noche de Bocas',
+]
+
+function normalizeCategory(text) {
+  return text
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+}
+
+function sortCategories(categories) {
+  const priority = CATEGORY_ORDER.map(normalizeCategory)
+  return [...categories].sort((a, b) => {
+    const ia = priority.indexOf(normalizeCategory(a))
+    const ib = priority.indexOf(normalizeCategory(b))
+    if (ia === -1 && ib === -1) return 0 // ninguna está en la lista: dejar como está
+    if (ia === -1) return 1 // "a" no está en la lista: va después
+    if (ib === -1) return -1 // "b" no está en la lista: va después
+    return ia - ib
+  })
+}
+
 export default function Menu() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
@@ -67,7 +107,7 @@ export default function Menu() {
     return acc
   }, {})
 
-  const categories = Object.keys(grouped)
+  const categories = sortCategories(Object.keys(grouped))
 
   const scrollTo = (id) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
