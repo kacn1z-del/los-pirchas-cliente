@@ -1,15 +1,7 @@
-import { useEffect, useState } from 'react'
 import { useCart } from '../CartContext'
 
 export default function Header({ onCartClick }) {
   const { count } = useCart()
-  const [scrolled, setScrolled] = useState(false)
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 140)
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
 
   return (
     <>
@@ -22,7 +14,7 @@ export default function Header({ onCartClick }) {
         <p className="hero__hours">Lun–Vie 11am–10pm · Mar cerrado</p>
       </section>
 
-      <header className={`bar ${scrolled ? 'is-condensed' : ''}`}>
+      <header className="bar">
         <div className="bar__brand">
           <img src="/logo.jpeg" alt="" className="bar__logo" />
           <span className="bar__name">Los Pirchas</span>
