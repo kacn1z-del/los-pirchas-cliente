@@ -2,12 +2,17 @@ import { useState } from 'react'
 import { CartProvider } from './CartContext'
 import Header from './components/Header'
 import Menu from './components/Menu'
+import MenuBook from './components/MenuBook'
 import CartDrawer from './components/CartDrawer'
 import Checkout from './components/Checkout'
 import OrderStatus from './components/OrderStatus'
 import SocialLinks from './components/SocialLinks'
 import ReviewsSection from './components/ReviewsSection'
 import './App.css'
+
+// El QR de las mesas apunta a /carta: un menú de solo lectura en formato
+// libro, sin carrito ni pedidos, pensado para escanear y hojear en el momento.
+const esCarta = window.location.pathname.replace(/\/+$/, '') === '/carta'
 
 export default function App() {
   const [cartOpen, setCartOpen] = useState(false)
@@ -27,6 +32,10 @@ export default function App() {
   const handleNewOrder = () => {
     setCompletedOrder(null)
     setView('menu')
+  }
+
+  if (esCarta) {
+    return <MenuBook />
   }
 
   return (
