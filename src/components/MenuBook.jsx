@@ -352,6 +352,7 @@ function MesaCheckout({ mesa, onBack, onSuccess }) {
       const orderRef = await addDoc(collection(db, 'orders'), {
         clientName: nombre.trim() || `Mesa ${mesa}`,
         mesa: String(mesa),
+        mesaAbierta: true,
         restaurantName: 'Los Pirchas',
         origen: 'salon',
         tipo: 'salon',
