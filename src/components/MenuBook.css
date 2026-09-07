@@ -240,3 +240,186 @@
     max-width: 480px;
   }
 }
+
+/* Barra superior: número de mesa + botón de carrito (solo en modo pedido) */
+.book-topbar {
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding: 0 4px;
+}
+
+.book-topbar__mesa {
+  color: #f4ede1;
+  font-weight: 700;
+  font-size: 14px;
+  background: rgba(244, 237, 225, 0.12);
+  padding: 6px 14px;
+  border-radius: 999px;
+}
+
+.book-topbar__cart {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  background: #f4ede1;
+  font-size: 18px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+.book-topbar__badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #d9711f;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+.book-cover__mesa {
+  font-size: 13px;
+  font-weight: 700;
+  color: #d9711f;
+  background: rgba(217, 113, 31, 0.12);
+  padding: 4px 14px;
+  border-radius: 999px;
+  margin: 0 0 18px;
+}
+
+/* Botón "+" para agregar un plato al pedido, dentro de la hoja del libro */
+.book-dish__top {
+  position: relative;
+  padding-right: 30px;
+}
+
+.book-dish__add {
+  position: absolute;
+  right: 0;
+  top: -4px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: #d9711f;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.book-dish__add:disabled {
+  background: #c8b090;
+  cursor: default;
+}
+
+.book-dish__add.is-added {
+  background: #3f8a4c;
+}
+
+.book-page__horario {
+  font-size: 12px;
+  color: #9c8464;
+  font-style: italic;
+  margin: -6px 0 12px;
+}
+
+/* Pantalla de checkout de mesa, dentro del libro */
+.book-page--form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.book-form__back {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: #6b4a2b;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 0;
+  cursor: pointer;
+}
+
+.book-page--form h2 {
+  margin: 0;
+  font-size: 19px;
+  color: #2c1a0e;
+}
+
+.book-form__items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px dashed #c8b090;
+  border-bottom: 1px dashed #c8b090;
+  padding: 10px 0;
+}
+
+.book-form__row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #2c1a0e;
+}
+
+.book-form__total {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 800;
+  font-size: 15px;
+  color: #2c1a0e;
+}
+
+.book-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.book-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b4a2b;
+}
+
+.book-form input,
+.book-form textarea {
+  border: 1px solid rgba(107, 74, 43, 0.3);
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 13px;
+  color: #2c1a0e;
+  resize: vertical;
+}
+
+/* Confirmación tras enviar el pedido desde la mesa */
+.book-confirm__icon {
+  font-size: 40px;
+  margin-bottom: 4px;
+}
+
+.book-confirm__status {
+  font-size: 13px;
+  color: #6b4a2b;
+  margin: 4px 0 22px;
+}
