@@ -10,9 +10,13 @@ import SocialLinks from './components/SocialLinks'
 import ReviewsSection from './components/ReviewsSection'
 import './App.css'
 
-// El QR de las mesas apunta a /carta: un menú de solo lectura en formato
-// libro, sin carrito ni pedidos, pensado para escanear y hojear en el momento.
+// El QR de las mesas apunta a /carta?mesa=2: un menú en formato libro que,
+// al venir con número de mesa, también deja pedir directo desde ahí (el
+// pedido llega al admin como si lo hubiera tomado un mesero en esa mesa).
+// /carta sin ese parámetro (por ejemplo si se comparte el link a mano) se
+// queda en modo "solo ver", sin botones de agregar.
 const esCarta = window.location.pathname.replace(/\/+$/, '') === '/carta'
+const mesaDesdeQR = new URLSearchParams(window.location.search).get('mesa')
 
 export default function App() {
   const [cartOpen, setCartOpen] = useState(false)
@@ -35,7 +39,11 @@ export default function App() {
   }
 
   if (esCarta) {
-    return <MenuBook />
+    return (
+      <CartProvider>
+        <MenuBook mesa={mesaDesdeQR} />
+      </CartProvider>
+    )
   }
 
   return (
@@ -70,4 +78,3 @@ export default function App() {
     </CartProvider>
   )
 }
-
