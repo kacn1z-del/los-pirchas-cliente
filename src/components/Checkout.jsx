@@ -7,34 +7,13 @@ function formatColones(value) {
   return `₡${Number(value ?? 0).toLocaleString('es-CR')}`
 }
 
-// Número de SINPE Móvil / WhatsApp de Los Pirchas
+// Número de SINPE Móvil de Los Pirchas
 const SINPE_NUMBER = '8892-7759'
-const WHATSAPP_ORDER_NUMBER = '8892-7759'
 
 const PAYMENT_METHODS = [
   { key: 'efectivo', label: 'Efectivo' },
   { key: 'sinpe', label: 'SINPE Móvil' },
 ]
-
-function buildWhatsappOrderMessage(form, items, total) {
-  const lines = items.map((i) => `• ${i.qty} x ${i.nombre} — ${formatColones(i.precio * i.qty)}`)
-  const parts = [
-    'Hola! Quiero hacer este pedido en Los Pirchas:',
-    '',
-    ...lines,
-    '',
-    `Total: ${formatColones(total)}`,
-  ]
-  if (form.nombre.trim()) parts.push('', `Nombre: ${form.nombre.trim()}`)
-  if (form.direccion.trim()) parts.push(`Dirección: ${form.direccion.trim()}`)
-  if (form.notas.trim()) parts.push(`Notas: ${form.notas.trim()}`)
-  return encodeURIComponent(parts.join('\n'))
-}
-
-function whatsappOrderLink(form, items, total) {
-  const phone = WHATSAPP_ORDER_NUMBER.replace(/[^\d]/g, '')
-  return `https://wa.me/506${phone}?text=${buildWhatsappOrderMessage(form, items, total)}`
-}
 
 export default function Checkout({ onBack, onSuccess }) {
   const { items, total, clear } = useCart()
@@ -163,15 +142,6 @@ export default function Checkout({ onBack, onSuccess }) {
         <button type="submit" className="btn-primary" disabled={!isValid || submitting}>
           {submitting ? 'Enviando pedido…' : `Confirmar pedido — ${formatColones(total)}`}
         </button>
-
-        <a
-          className="btn-whatsapp btn-whatsapp--block"
-          href={whatsappOrderLink(form, items, total)}
-          target="_blank"
-          rel="noreferrer"
-        >
-          Compartir pedido por WhatsApp
-        </a>
       </form>
     </div>
   )
