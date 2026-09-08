@@ -19,15 +19,36 @@ function formatDate(ts) {
   return date.toLocaleString('es-CR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 }
 
-function whatsappConfirmLink(orderId, form) {
+// Número de WhatsApp de Los Pirchas — mismo que el de SINPE Móvil.
+const RESTAURANT_WHATSAPP = '8892-7759'
+
+function whatsappOrderLink(orderId, order) {
+  const lines = (order.items || []).map(
+    (i) => `• ${i.qty} x ${i.nombre} — ${formatColones(i.precio * i.qty)}`
+  )
+  const parts = [
+    `Hola! Ya hice este pedido en Los Pirchas (#${orderId.slice(0, 6)}):`,
+    '',
+    ...lines,
+    '',
+    `Total: ${formatColones(order.total)}`,
+  ]
+  if (order.clientName) parts.push('', `Nombre: ${order.clientName}`)
+  if (order.clientAddress) parts.push(`Dirección: ${order.clientAddress}`)
+  const message = encodeURIComponent(parts.join('\n'))
+  const phone = RESTAURANT_WHATSAPP.replace(/[^\d]/g, '')
+  return `https://wa.me/506${phone}?text=${message}`
+}
+
+function whatsappReceiptLink(orderId, form) {
   const message = encodeURIComponent(
     `Hola, soy ${form.nombre}. Acabo de hacer un pedido en Los Pirchas (#${orderId.slice(
       0,
       6
     )}). Aquí les mando el comprobante de SINPE.`
   )
-  const phone = form.telefono.replace(/[^\d]/g, '')
-  return `https://wa.me/${phone}?text=${message}`
+  const phone = RESTAURANT_WHATSAPP.replace(/[^\d]/g, '')
+  return `https://wa.me/506${phone}?text=${message}`
 }
 
 export default function OrderStatus({ orderId, form, onNewOrder }) {
@@ -79,7 +100,7 @@ export default function OrderStatus({ orderId, form, onNewOrder }) {
   ${order.clientAddress ? `<p class="meta center">${order.clientAddress}</p>` : ''}
   <div class="items">${itemsHtml}</div>
   <div class="total"><span>Total</span><span>${formatColones(order.total)}</span></div>
-  <p class="payment">Pago: SINPE Móvil</p>
+  <p class="payment">Pago: ${order.paymentMethod === 'sinpe' ? 'SINPE Móvil' : 'Efectivo'}</p>
   <script>window.onload = () => { window.print(); };</script>
 </body>
 </html>`
@@ -139,7 +160,9 @@ export default function OrderStatus({ orderId, form, onNewOrder }) {
             <span>Total</span>
             <span className="mono">{formatColones(order.total)}</span>
           </div>
-          <p className="receipt__payment">Pago: SINPE Móvil</p>
+          <p className="receipt__payment">
+            Pago: {order.paymentMethod === 'sinpe' ? 'SINPE Móvil' : 'Efectivo'}
+          </p>
         </div>
       )}
 
@@ -147,9 +170,16 @@ export default function OrderStatus({ orderId, form, onNewOrder }) {
         <button className="btn-secondary" onClick={handlePrint}>
           🖨️ Imprimir recibo
         </button>
-        <a className="btn-whatsapp" href={whatsappConfirmLink(orderId, form)} target="_blank" rel="noreferrer">
-          Enviar comprobante por WhatsApp
-        </a>
+        {order && (
+          <a className="btn-whatsapp" href={whatsappOrderLink(orderId, order)} target="_blank" rel="noreferrer">
+            Compartir pedido por WhatsApp
+          </a>
+        )}
+        {order?.paymentMethod === 'sinpe' && (
+          <a className="btn-whatsapp" href={whatsappReceiptLink(orderId, form)} target="_blank" rel="noreferrer">
+            Compartir recibo por WhatsApp
+          </a>
+        )}
       </div>
 
       <button className="back-link" onClick={onNewOrder}>
