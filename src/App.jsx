@@ -6,6 +6,7 @@ import MenuBook from './components/MenuBook'
 import CartDrawer from './components/CartDrawer'
 import Checkout from './components/Checkout'
 import OrderStatus from './components/OrderStatus'
+import Reservation from './components/Reservation'
 import SocialLinks from './components/SocialLinks'
 import ReviewsSection from './components/ReviewsSection'
 import './App.css'
@@ -20,7 +21,7 @@ const mesaDesdeQR = new URLSearchParams(window.location.search).get('mesa')
 
 export default function App() {
   const [cartOpen, setCartOpen] = useState(false)
-  const [view, setView] = useState('menu') // 'menu' | 'checkout' | 'confirmation'
+  const [view, setView] = useState('menu') // 'menu' | 'checkout' | 'confirmation' | 'reserva'
   const [completedOrder, setCompletedOrder] = useState(null)
 
   const handleCheckout = () => {
@@ -52,13 +53,16 @@ export default function App() {
         <div className="flame flame--one" aria-hidden="true" />
         <div className="flame flame--two" aria-hidden="true" />
 
-        {view !== 'confirmation' && <Header onCartClick={() => setCartOpen(true)} />}
+        {view !== 'confirmation' && (
+          <Header onCartClick={() => setCartOpen(true)} onReservarClick={() => setView('reserva')} />
+        )}
 
         <main className="app-main">
           {view === 'menu' && <Menu />}
           {view === 'checkout' && (
             <Checkout onBack={() => setView('menu')} onSuccess={handleSuccess} />
           )}
+          {view === 'reserva' && <Reservation onBack={() => setView('menu')} />}
           {view === 'confirmation' && completedOrder && (
             <OrderStatus
               orderId={completedOrder.orderId}
