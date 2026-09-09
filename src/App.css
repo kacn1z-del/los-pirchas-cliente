@@ -98,6 +98,24 @@
   color: var(--cream-100);
 }
 
+.bar__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bar__reservar {
+  background: transparent;
+  border: 1px solid var(--gold-400);
+  color: var(--gold-400);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
 .bar__cart {
   position: relative;
   background: var(--ember-700);
