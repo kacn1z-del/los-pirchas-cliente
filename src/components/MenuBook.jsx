@@ -419,19 +419,44 @@ function MesaCheckout({ mesa, onBack, onSuccess }) {
   )
 }
 
+// Número de WhatsApp de Los Pirchas — mismo que usa OrderStatus.jsx para
+// pedidos de entrega, así el botón se comporta igual en ambos casos.
+const RESTAURANT_WHATSAPP = '8892-7759'
+
+function whatsappMesaOrderLink(orderId, order, mesa) {
+  const lines = (order.items || []).map(
+    (i) => `• ${i.qty} x ${i.nombre} — ${formatColones(i.precio * i.qty)}`
+  )
+  const parts = [
+    `Hola! Ya hice este pedido en Los Pirchas (#${orderId.slice(0, 6)}) — Mesa ${mesa}:`,
+    '',
+    ...lines,
+    '',
+    `Total: ${formatColones(order.total)}`,
+  ]
+  if (order.clientName) parts.push('', `Nombre: ${order.clientName}`)
+  if (order.notes) parts.push(`Notas: ${order.notes}`)
+  const message = encodeURIComponent(parts.join('\n'))
+  const phone = RESTAURANT_WHATSAPP.replace(/[^\d]/g, '')
+  return `https://wa.me/506${phone}?text=${message}`
+}
+
 function ConfirmacionPedido({ mesa, pedidoId, onPedirMas }) {
-  const [status, setStatus] = useState('pending')
+  const [order, setOrder] = useState(null)
 
   useEffect(() => {
     const unsub = onSnapshot(doc(db, 'orders', pedidoId), (snap) => {
-      if (snap.exists()) setStatus(snap.data().status || 'pending')
+      if (snap.exists()) setOrder({ id: snap.id, ...snap.data() })
     })
     return () => unsub()
   }, [pedidoId])
 
+  const status = order?.status || 'pending'
+
   const STATUS_LABELS = {
     pending: 'Pendiente',
     preparing: 'Preparando',
+    listo: 'Listo',
     delivered: 'Entregado',
     cancelled: 'Cancelado',
   }
@@ -444,6 +469,18 @@ function ConfirmacionPedido({ mesa, pedidoId, onPedirMas }) {
       <p className="book-confirm__status">
         Estado: <strong>{STATUS_LABELS[status] || status}</strong>
       </p>
+
+      {order && (
+        <a
+          className="btn-whatsapp"
+          href={whatsappMesaOrderLink(pedidoId, order, mesa)}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Compartir pedido por WhatsApp
+        </a>
+      )}
+
       <button className="book-cover__btn" onClick={onPedirMas}>
         Pedir algo más
       </button>
