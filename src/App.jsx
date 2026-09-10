@@ -7,6 +7,7 @@ import CartDrawer from './components/CartDrawer'
 import Checkout from './components/Checkout'
 import OrderStatus from './components/OrderStatus'
 import Reservation from './components/Reservation'
+import InstallPrompt from './components/InstallPrompt'
 import SocialLinks from './components/SocialLinks'
 import ReviewsSection from './components/ReviewsSection'
 import './App.css'
@@ -54,7 +55,10 @@ export default function App() {
         <div className="flame flame--two" aria-hidden="true" />
 
         {view !== 'confirmation' && (
-          <Header onCartClick={() => setCartOpen(true)} onReservarClick={() => setView('reserva')} />
+          <>
+            <InstallPrompt appName="Los Pirchas" />
+            <Header onCartClick={() => setCartOpen(true)} onReservarClick={() => setView('reserva')} />
+          </>
         )}
 
         <main className="app-main">
