@@ -978,3 +978,50 @@
   text-align: center;
   box-sizing: border-box;
 }
+
+/* ============================================================
+   Banner de "instalar app" (PWA) — se muestra arriba del todo
+   cuando el navegador ofrece instalar, o con instrucciones en
+   iPhone (Safari no tiene botón nativo de instalar).
+   ============================================================ */
+
+.install-banner {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--char-950);
+  color: var(--cream-050);
+  padding: 10px 14px;
+  font-family: var(--font-body);
+  font-size: 13px;
+}
+
+.install-banner__text {
+  flex: 1;
+  line-height: 1.4;
+}
+
+.install-banner__btn {
+  background: linear-gradient(90deg, var(--ember-700), var(--ember-500));
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-weight: 700;
+  font-size: 12.5px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.install-banner__close {
+  background: none;
+  border: none;
+  color: var(--cream-100);
+  font-size: 15px;
+  padding: 4px;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
