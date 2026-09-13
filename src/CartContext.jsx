@@ -20,26 +20,32 @@ export function CartProvider({ children }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
   }, [items])
 
-  const addItem = (product) => {
+  const addItem = (product, nota = null) => {
     setItems((prev) => {
-      const existing = prev.find((i) => i.id === product.id)
+      // Con nota (ej. un sabor de batido), cada sabor es una línea aparte
+      // del carrito en vez de sumarse a otro sabor distinto del mismo plato.
+      const existing = prev.find((i) => i.id === product.id && (i.nota || null) === (nota || null))
       if (existing) {
-        return prev.map((i) => (i.id === product.id ? { ...i, qty: i.qty + 1 } : i))
+        return prev.map((i) =>
+          i === existing ? { ...i, qty: i.qty + 1 } : i
+        )
       }
-      return [...prev, { id: product.id, nombre: product.nombre, precio: product.precio, qty: 1 }]
+      return [...prev, { id: product.id, nombre: product.nombre, precio: product.precio, qty: 1, nota: nota || null }]
     })
   }
 
-  const removeItem = (id) => {
-    setItems((prev) => prev.filter((i) => i.id !== id))
+  const removeItem = (id, nota = null) => {
+    setItems((prev) => prev.filter((i) => !(i.id === id && (i.nota || null) === (nota || null))))
   }
 
-  const setQty = (id, qty) => {
+  const setQty = (id, qty, nota = null) => {
     if (qty <= 0) {
-      removeItem(id)
+      removeItem(id, nota)
       return
     }
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, qty } : i)))
+    setItems((prev) =>
+      prev.map((i) => (i.id === id && (i.nota || null) === (nota || null) ? { ...i, qty } : i))
+    )
   }
 
   const clear = () => setItems([])
