@@ -7,25 +7,6 @@ function formatColones(value) {
   return `₡${Number(value ?? 0).toLocaleString('es-CR')}`
 }
 
-// Los batidos ("Batido en agua"/"Batido en leche") no tienen un campo de
-// sabores estructurado en Firestore — los sabores vienen como texto suelto
-// en la descripción (ej. "Fresa, maracuyá, ... o resbaladera."). Esta
-// función los separa en una lista para armar el selector.
-function parseFlavors(descripcion) {
-  if (!descripcion) return []
-  const clean = descripcion.replace(/\.\s*$/, '').trim()
-  const lastOSplit = clean.split(/,?\s+o\s+(?=[^,]+$)/i)
-  const last = lastOSplit.length > 1 ? lastOSplit.pop() : null
-  const rest = lastOSplit[0]
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean)
-  const all = last ? [...rest, last.trim()] : rest
-  return all
-    .filter((s) => s.length > 1)
-    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-}
-
 function slugify(text) {
   return text
     .toLowerCase()
@@ -101,7 +82,6 @@ export default function Menu() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [search, setSearch] = useState('')
-  const [saborElegido, setSaborElegido] = useState({}) // { [platoId]: sabor }
   const { addItem } = useCart()
 
   useEffect(() => {
@@ -223,9 +203,6 @@ export default function Menu() {
             <div className="menu__grid">
               {grouped[categoria].map((plato) => {
                 const disponible = plato.disponible !== false && horario.disponible
-                const sabores = parseFlavors(plato.descripcion)
-                const requiereSabor = sabores.length > 0
-                const saborActual = saborElegido[plato.id] || ''
                 return (
                   <article key={plato.id} className={`dish-card ${!disponible ? 'is-disabled' : ''}`}>
                     {plato.imagenUrl && (
@@ -236,36 +213,16 @@ export default function Menu() {
                       <span className="dish-card__price mono">{formatColones(plato.precio)}</span>
                     </div>
                     {plato.descripcion && <p className="dish-card__desc">{plato.descripcion}</p>}
-                    {requiereSabor && disponible && (
-                      <select
-                        className="dish-card__flavor"
-                        value={saborActual}
-                        onChange={(e) => setSaborElegido((prev) => ({ ...prev, [plato.id]: e.target.value }))}
-                        aria-label={`Elegir sabor para ${plato.nombre}`}
-                      >
-                        <option value="">Elegí un sabor…</option>
-                        {sabores.map((sabor) => (
-                          <option key={sabor} value={sabor}>
-                            {sabor}
-                          </option>
-                        ))}
-                      </select>
-                    )}
                     <button
                       className="dish-card__add"
-                      disabled={!disponible || (requiereSabor && !saborActual)}
-                      onClick={() => {
-                        addItem(plato, requiereSabor ? saborActual : null)
-                        if (requiereSabor) setSaborElegido((prev) => ({ ...prev, [plato.id]: '' }))
-                      }}
+                      disabled={!disponible}
+                      onClick={() => addItem(plato)}
                       aria-label={`Agregar ${plato.nombre} al carrito`}
                     >
                       {plato.disponible === false
                         ? 'No disponible'
                         : !horario.disponible
                         ? 'Fuera de horario'
-                        : requiereSabor && !saborActual
-                        ? 'Elegí un sabor'
                         : '+ Agregar'}
                     </button>
                   </article>
