@@ -27,21 +27,28 @@ export default function CartDrawer({ open, onClose, onCheckout }) {
           <>
             <div className="drawer__items">
               {items.map((item) => (
-                <div key={item.id} className="cart-row">
+                <div key={`${item.id}-${item.nota || ''}`} className="cart-row">
                   <div className="cart-row__info">
-                    <p className="cart-row__name">{item.nombre}</p>
+                    <p className="cart-row__name">
+                      {item.nombre}
+                      {item.nota && <span className="cart-row__nota"> — {item.nota}</span>}
+                    </p>
                     <p className="cart-row__price mono">{formatColones(item.precio)}</p>
                   </div>
                   <div className="cart-row__qty">
-                    <button onClick={() => setQty(item.id, item.qty - 1)} aria-label="Restar">
+                    <button onClick={() => setQty(item.id, item.qty - 1, item.nota)} aria-label="Restar">
                       −
                     </button>
                     <span className="mono">{item.qty}</span>
-                    <button onClick={() => setQty(item.id, item.qty + 1)} aria-label="Sumar">
+                    <button onClick={() => setQty(item.id, item.qty + 1, item.nota)} aria-label="Sumar">
                       +
                     </button>
                   </div>
-                  <button className="cart-row__remove" onClick={() => removeItem(item.id)} aria-label="Quitar">
+                  <button
+                    className="cart-row__remove"
+                    onClick={() => removeItem(item.id, item.nota)}
+                    aria-label="Quitar"
+                  >
                     🗑
                   </button>
                 </div>
