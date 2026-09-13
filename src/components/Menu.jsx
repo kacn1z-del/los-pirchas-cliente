@@ -7,6 +7,25 @@ function formatColones(value) {
   return `₡${Number(value ?? 0).toLocaleString('es-CR')}`
 }
 
+// Los batidos ("Batido en agua"/"Batido en leche") no tienen un campo de
+// sabores estructurado en Firestore — los sabores vienen como texto suelto
+// en la descripción (ej. "Fresa, maracuyá, ... o resbaladera."). Esta
+// función los separa en una lista para armar el selector.
+function parseFlavors(descripcion) {
+  if (!descripcion) return []
+  const clean = descripcion.replace(/\.\s*$/, '').trim()
+  const lastOSplit = clean.split(/,?\s+o\s+(?=[^,]+$)/i)
+  const last = lastOSplit.length > 1 ? lastOSplit.pop() : null
+  const rest = lastOSplit[0]
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+  const all = last ? [...rest, last.trim()] : rest
+  return all
+    .filter((s) => s.length > 1)
+    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+}
+
 function slugify(text) {
   return text
     .toLowerCase()
@@ -35,8 +54,9 @@ const CATEGORY_ORDER = [
   'Noche de Bocas',
 ]
 
-function normalizeCategory(text) {
-  return text
+function normalizeText(text) {
+  return (text || '')
+    .toString()
     .trim()
     .toLowerCase()
     .normalize('NFD')
@@ -48,16 +68,16 @@ function normalizeCategory(text) {
 //   Noche de Bocas: lunes a jueves, 5 p.m. a 10 p.m.
 // Cualquier otra categoría no tiene restricción de horario.
 function disponibilidadPorHorario(categoria) {
-  const cat = normalizeCategory(categoria)
+  const cat = normalizeText(categoria)
   const now = new Date()
   const dia = now.getDay() // 0=domingo … 6=sábado
   const minutos = now.getHours() * 60 + now.getMinutes()
 
-  if (cat === normalizeCategory('Plato Ejecutivo')) {
+  if (cat === normalizeText('Plato Ejecutivo')) {
     const enHorario = dia >= 1 && dia <= 5 && minutos >= 11 * 60 && minutos < 16 * 60
     return { disponible: enHorario, mensaje: 'Disponible lunes a viernes, 11 a.m. a 4 p.m.' }
   }
-  if (cat === normalizeCategory('Noche de Bocas')) {
+  if (cat === normalizeText('Noche de Bocas')) {
     const enHorario = dia >= 1 && dia <= 4 && minutos >= 17 * 60 && minutos < 22 * 60
     return { disponible: enHorario, mensaje: 'Disponible lunes a jueves, 5 p.m. a 10 p.m.' }
   }
@@ -65,10 +85,10 @@ function disponibilidadPorHorario(categoria) {
 }
 
 function sortCategories(categories) {
-  const priority = CATEGORY_ORDER.map(normalizeCategory)
+  const priority = CATEGORY_ORDER.map(normalizeText)
   return [...categories].sort((a, b) => {
-    const ia = priority.indexOf(normalizeCategory(a))
-    const ib = priority.indexOf(normalizeCategory(b))
+    const ia = priority.indexOf(normalizeText(a))
+    const ib = priority.indexOf(normalizeText(b))
     if (ia === -1 && ib === -1) return 0 // ninguna está en la lista: dejar como está
     if (ia === -1) return 1 // "a" no está en la lista: va después
     if (ib === -1) return -1 // "b" no está en la lista: va después
@@ -80,6 +100,8 @@ export default function Menu() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [search, setSearch] = useState('')
+  const [saborElegido, setSaborElegido] = useState({}) // { [platoId]: sabor }
   const { addItem } = useCart()
 
   useEffect(() => {
@@ -121,7 +143,29 @@ export default function Menu() {
     )
   }
 
-  const grouped = items.reduce((acc, item) => {
+  const term = normalizeText(search)
+  // Si el cliente busca "bebidas", queremos que le salga todo lo que
+  // tenga que ver con bebidas aunque el nombre de la categoría en
+  // Firestore sea más específico (ej. "Gaseosas y refrescos", "Cerveza
+  // Nacional", "Jugos", "Smoothies"). Por eso, además de nombre/categoría
+  // exactos, buscamos también por estas palabras "paraguas".
+  const BEBIDA_ALIASES = ['bebida', 'gaseosa', 'cerveza', 'licor', 'jugo', 'smoothie', 'cafe', 'helado', 'refresco']
+  const matchesSearch = (item) => {
+    if (!term) return true
+    const nombre = normalizeText(item.nombre)
+    const categoria = normalizeText(item.categoria)
+    if (nombre.includes(term) || categoria.includes(term)) return true
+    // "bebidas" (o cualquier alias) también debe traer todas las
+    // categorías de bebidas, aunque no se llamen literalmente "bebidas"
+    if (BEBIDA_ALIASES.some((alias) => alias.includes(term) || term.includes(alias))) {
+      return BEBIDA_ALIASES.some((alias) => categoria.includes(alias))
+    }
+    return false
+  }
+
+  const visibleItems = items.filter(matchesSearch)
+
+  const grouped = visibleItems.reduce((acc, item) => {
     const cat = item.categoria || 'Otros'
     acc[cat] = acc[cat] || []
     acc[cat].push(item)
@@ -136,6 +180,28 @@ export default function Menu() {
 
   return (
     <div className="menu">
+      <div className="menu__search">
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar en el menú (ej. bebidas, casado, pollo)"
+          className="menu__search-input"
+          aria-label="Buscar en el menú"
+        />
+        {search && (
+          <button type="button" className="menu__search-clear" onClick={() => setSearch('')} aria-label="Limpiar búsqueda">
+            ✕
+          </button>
+        )}
+      </div>
+
+      {search && categories.length === 0 && (
+        <p className="state-panel__hint" style={{ padding: '0 16px' }}>
+          No se encontró nada para "{search}".
+        </p>
+      )}
+
       <nav className="category-nav" aria-label="Categorías del menú">
         {categories.map((cat) => (
           <button key={cat} className="category-nav__chip" onClick={() => scrollTo(slugify(cat))}>
@@ -157,6 +223,9 @@ export default function Menu() {
             <div className="menu__grid">
               {grouped[categoria].map((plato) => {
                 const disponible = plato.disponible !== false && horario.disponible
+                const sabores = parseFlavors(plato.descripcion)
+                const requiereSabor = sabores.length > 0
+                const saborActual = saborElegido[plato.id] || ''
                 return (
                   <article key={plato.id} className={`dish-card ${!disponible ? 'is-disabled' : ''}`}>
                     {plato.imagenUrl && (
@@ -167,16 +236,36 @@ export default function Menu() {
                       <span className="dish-card__price mono">{formatColones(plato.precio)}</span>
                     </div>
                     {plato.descripcion && <p className="dish-card__desc">{plato.descripcion}</p>}
+                    {requiereSabor && disponible && (
+                      <select
+                        className="dish-card__flavor"
+                        value={saborActual}
+                        onChange={(e) => setSaborElegido((prev) => ({ ...prev, [plato.id]: e.target.value }))}
+                        aria-label={`Elegir sabor para ${plato.nombre}`}
+                      >
+                        <option value="">Elegí un sabor…</option>
+                        {sabores.map((sabor) => (
+                          <option key={sabor} value={sabor}>
+                            {sabor}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                     <button
                       className="dish-card__add"
-                      disabled={!disponible}
-                      onClick={() => addItem(plato)}
+                      disabled={!disponible || (requiereSabor && !saborActual)}
+                      onClick={() => {
+                        addItem(plato, requiereSabor ? saborActual : null)
+                        if (requiereSabor) setSaborElegido((prev) => ({ ...prev, [plato.id]: '' }))
+                      }}
                       aria-label={`Agregar ${plato.nombre} al carrito`}
                     >
                       {plato.disponible === false
                         ? 'No disponible'
                         : !horario.disponible
                         ? 'Fuera de horario'
+                        : requiereSabor && !saborActual
+                        ? 'Elegí un sabor'
                         : '+ Agregar'}
                     </button>
                   </article>
