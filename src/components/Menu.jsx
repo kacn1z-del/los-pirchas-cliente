@@ -23,6 +23,7 @@ const CATEGORY_ORDER = [
   'Menú infantil',
   'Especialidades Mexicanas',
   'Bebidas',
+  'Bebidas calientes',
   'Otras Especialidades',
   'Para Compartir',
   'Entradas calientes',
@@ -34,6 +35,13 @@ const CATEGORY_ORDER = [
   'Plato Ejecutivo',
   'Noche de Bocas',
 ]
+
+// Orden de subcategorías dentro de una categoría, cuando aplica (por
+// ejemplo, dentro de "Bebidas calientes": Café, Té, Aguadulce, Chocolate).
+// Cualquier subcategoría no listada aquí aparece al final.
+const SUBCATEGORY_ORDER = {
+  'bebidas calientes': ['Café', 'Té', 'Aguadulce', 'Chocolate'],
+}
 
 function normalizeText(text) {
   return (text || '')
@@ -75,6 +83,44 @@ function sortCategories(categories) {
     if (ib === -1) return -1 // "b" no está en la lista: va después
     return ia - ib
   })
+}
+
+// Agrupa los platos de una categoría por subcategoría, si al menos uno la
+// tiene definida. Devuelve una lista de grupos [{ subcategoria, platos }] —
+// subcategoria es null para el grupo de platos sin subcategoría (se
+// muestran primero, sin encabezado). Si ningún plato de la categoría tiene
+// subcategoría, devuelve un solo grupo sin encabezado (comportamiento
+// idéntico al de antes).
+function groupBySubcategoria(categoria, platos) {
+  const tieneSubcategorias = platos.some((p) => p.subcategoria)
+  if (!tieneSubcategorias) {
+    return [{ subcategoria: null, platos }]
+  }
+
+  const orden = SUBCATEGORY_ORDER[normalizeText(categoria)] || []
+  const ordenNormalizado = orden.map(normalizeText)
+
+  const grupos = new Map()
+  platos.forEach((p) => {
+    const key = p.subcategoria || ''
+    if (!grupos.has(key)) grupos.set(key, [])
+    grupos.get(key).push(p)
+  })
+
+  const entries = [...grupos.entries()]
+  entries.sort(([a], [b]) => {
+    if (a === '' && b === '') return 0
+    if (a === '') return -1 // sin subcategoría va primero
+    if (b === '') return 1
+    const ia = ordenNormalizado.indexOf(normalizeText(a))
+    const ib = ordenNormalizado.indexOf(normalizeText(b))
+    if (ia === -1 && ib === -1) return a.localeCompare(b)
+    if (ia === -1) return 1
+    if (ib === -1) return -1
+    return ia - ib
+  })
+
+  return entries.map(([subcategoria, items]) => ({ subcategoria: subcategoria || null, platos: items }))
 }
 
 export default function Menu() {
@@ -200,35 +246,40 @@ export default function Menu() {
             {horario.mensaje && !horario.disponible && (
               <p className="menu__schedule-hint">⏰ {horario.mensaje}</p>
             )}
-            <div className="menu__grid">
-              {grouped[categoria].map((plato) => {
-                const disponible = plato.disponible !== false && horario.disponible
-                return (
-                  <article key={plato.id} className={`dish-card ${!disponible ? 'is-disabled' : ''}`}>
-                    {plato.imagenUrl && (
-                      <img src={plato.imagenUrl} alt={plato.nombre} className="dish-card__img" loading="lazy" />
-                    )}
-                    <div className="dish-card__top">
-                      <h3>{plato.nombre}</h3>
-                      <span className="dish-card__price mono">{formatColones(plato.precio)}</span>
-                    </div>
-                    {plato.descripcion && <p className="dish-card__desc">{plato.descripcion}</p>}
-                    <button
-                      className="dish-card__add"
-                      disabled={!disponible}
-                      onClick={() => addItem(plato)}
-                      aria-label={`Agregar ${plato.nombre} al carrito`}
-                    >
-                      {plato.disponible === false
-                        ? 'No disponible'
-                        : !horario.disponible
-                        ? 'Fuera de horario'
-                        : '+ Agregar'}
-                    </button>
-                  </article>
-                )
-              })}
-            </div>
+            {groupBySubcategoria(categoria, grouped[categoria]).map((grupo) => (
+              <div key={grupo.subcategoria || '__sin_subcategoria__'}>
+                {grupo.subcategoria && <h4 className="menu__subcategory">{grupo.subcategoria}</h4>}
+                <div className="menu__grid">
+                  {grupo.platos.map((plato) => {
+                    const disponible = plato.disponible !== false && horario.disponible
+                    return (
+                      <article key={plato.id} className={`dish-card ${!disponible ? 'is-disabled' : ''}`}>
+                        {plato.imagenUrl && (
+                          <img src={plato.imagenUrl} alt={plato.nombre} className="dish-card__img" loading="lazy" />
+                        )}
+                        <div className="dish-card__top">
+                          <h3>{plato.nombre}</h3>
+                          <span className="dish-card__price mono">{formatColones(plato.precio)}</span>
+                        </div>
+                        {plato.descripcion && <p className="dish-card__desc">{plato.descripcion}</p>}
+                        <button
+                          className="dish-card__add"
+                          disabled={!disponible}
+                          onClick={() => addItem(plato)}
+                          aria-label={`Agregar ${plato.nombre} al carrito`}
+                        >
+                          {plato.disponible === false
+                            ? 'No disponible'
+                            : !horario.disponible
+                            ? 'Fuera de horario'
+                            : '+ Agregar'}
+                        </button>
+                      </article>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
           </section>
         )
       })}
