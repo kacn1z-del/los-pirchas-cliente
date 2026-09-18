@@ -60,7 +60,7 @@ export default function Checkout({ onBack, onSuccess }) {
         })),
         total,
         paymentMethod,
-        status: 'pending',
+        status: 'pending_approval',
         createdAt: serverTimestamp(),
       })
       clear()
