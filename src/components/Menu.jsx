@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { collection, onSnapshot } from 'firebase/firestore'
+import { collection, doc, onSnapshot } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useCart } from '../CartContext'
 
@@ -23,6 +23,8 @@ const CATEGORY_ORDER = [
   'Menú infantil',
   'Especialidades Mexicanas',
   'Bebidas',
+  'Batidos en agua',
+  'Batidos en leche',
   'Bebidas calientes',
   'Otras Especialidades',
   'Para Compartir',
@@ -73,8 +75,12 @@ function disponibilidadPorHorario(categoria) {
   return { disponible: true, mensaje: null }
 }
 
-function sortCategories(categories) {
-  const priority = CATEGORY_ORDER.map(normalizeText)
+// customOrder es el orden que el admin haya guardado en Firestore
+// (Config/categoryOrder). Si existe, manda sobre CATEGORY_ORDER; si no
+// existe todavía (o está vacío), se usa CATEGORY_ORDER como antes.
+function sortCategories(categories, customOrder) {
+  const base = customOrder && customOrder.length > 0 ? customOrder : CATEGORY_ORDER
+  const priority = base.map(normalizeText)
   return [...categories].sort((a, b) => {
     const ia = priority.indexOf(normalizeText(a))
     const ib = priority.indexOf(normalizeText(b))
@@ -128,6 +134,7 @@ export default function Menu() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [search, setSearch] = useState('')
+  const [categoryOrder, setCategoryOrder] = useState([])
   const { addItem } = useCart()
 
   useEffect(() => {
@@ -142,6 +149,16 @@ export default function Menu() {
         setLoading(false)
       }
     )
+    return () => unsub()
+  }, [])
+
+  // Orden de categorías que haya guardado el admin (panel > Orden de
+  // categorías). Si todavía no guardó ninguno, se usa el orden fijo
+  // (CATEGORY_ORDER) como antes.
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'Config', 'categoryOrder'), (snap) => {
+      setCategoryOrder(snap.exists() && Array.isArray(snap.data().orden) ? snap.data().orden : [])
+    })
     return () => unsub()
   }, [])
 
@@ -175,7 +192,7 @@ export default function Menu() {
   // Firestore sea más específico (ej. "Gaseosas y refrescos", "Cerveza
   // Nacional", "Jugos", "Smoothies"). Por eso, además de nombre/categoría
   // exactos, buscamos también por estas palabras "paraguas".
-  const BEBIDA_ALIASES = ['bebida', 'gaseosa', 'cerveza', 'licor', 'jugo', 'smoothie', 'cafe', 'helado', 'refresco']
+  const BEBIDA_ALIASES = ['bebida', 'batido', 'gaseosa', 'cerveza', 'licor', 'jugo', 'smoothie', 'cafe', 'helado', 'refresco']
   const matchesSearch = (item) => {
     if (!term) return true
     const nombre = normalizeText(item.nombre)
@@ -198,7 +215,7 @@ export default function Menu() {
     return acc
   }, {})
 
-  const categories = sortCategories(Object.keys(grouped))
+  const categories = sortCategories(Object.keys(grouped), categoryOrder)
 
   const scrollTo = (id) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
