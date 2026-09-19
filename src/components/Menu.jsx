@@ -55,20 +55,23 @@ function normalizeText(text) {
 }
 
 // Horarios especiales según el menú físico:
-//   Plato Ejecutivo: lunes a viernes, 11 a.m. a 4 p.m.
+//   Menú/Plato Ejecutivo: lunes a viernes, 11 a.m. a 4 p.m.
 //   Noche de Bocas: lunes a jueves, 5 p.m. a 10 p.m.
 // Cualquier otra categoría no tiene restricción de horario.
+// Se busca "incluye la palabra" en vez de comparar el nombre exacto, para
+// que esto no se rompa si el nombre de la categoría cambia un poco (ej.
+// "Plato Ejecutivo" → "Menú Ejecutivo") — ya pasó una vez.
 function disponibilidadPorHorario(categoria) {
   const cat = normalizeText(categoria)
   const now = new Date()
   const dia = now.getDay() // 0=domingo … 6=sábado
   const minutos = now.getHours() * 60 + now.getMinutes()
 
-  if (cat === normalizeText('Plato Ejecutivo')) {
+  if (cat.includes('ejecutivo')) {
     const enHorario = dia >= 1 && dia <= 5 && minutos >= 11 * 60 && minutos < 16 * 60
     return { disponible: enHorario, mensaje: 'Disponible lunes a viernes, 11 a.m. a 4 p.m.' }
   }
-  if (cat === normalizeText('Noche de Bocas')) {
+  if (cat.includes('bocas')) {
     const enHorario = dia >= 1 && dia <= 4 && minutos >= 17 * 60 && minutos < 22 * 60
     return { disponible: enHorario, mensaje: 'Disponible lunes a jueves, 5 p.m. a 10 p.m.' }
   }
