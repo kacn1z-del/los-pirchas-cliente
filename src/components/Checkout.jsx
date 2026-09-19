@@ -1,7 +1,11 @@
 import { useState } from 'react'
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore'
+import { addDoc, collection, getDocs, query, serverTimestamp, where } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useCart } from '../CartContext'
+
+// Mismos 3 cupos que usa el admin en PhoneOrderPanel.jsx para el plano de
+// Salón — un pedido Express de acá ocupa uno igual que uno telefónico.
+const EXPRESS_SLOTS = ['Express 1', 'Express 2', 'Express 3']
 
 function formatColones(value) {
   return `₡${Number(value ?? 0).toLocaleString('es-CR')}`
@@ -45,6 +49,19 @@ export default function Checkout({ onBack, onSuccess }) {
     setSubmitting(true)
     setError(null)
     try {
+      // Si es Express, le asignamos un cupo del plano de Salón ("Express
+      // 1/2/3"), igual que hace el admin con los pedidos telefónicos — así
+      // el pedido aparece ahí apenas entra, no solo en la lista de pedidos.
+      // Si los 3 cupos ya están ocupados, el pedido se crea igual, solo que
+      // sin cupo asignado (se puede seguir viendo y cobrando desde "Todos
+      // los pedidos" en el admin).
+      let mesaAsignada = null
+      if (tipoEntrega === 'express') {
+        const ocupadosSnap = await getDocs(query(collection(db, 'orders'), where('mesaAbierta', '==', true)))
+        const ocupados = ocupadosSnap.docs.map((d) => d.data().mesa).filter(Boolean)
+        mesaAsignada = EXPRESS_SLOTS.find((s) => !ocupados.includes(s)) || null
+      }
+
       const orderRef = await addDoc(collection(db, 'orders'), {
         clientName: form.nombre.trim(),
         clientPhone: form.telefono.trim(),
@@ -61,6 +78,8 @@ export default function Checkout({ onBack, onSuccess }) {
         total,
         paymentMethod,
         status: 'pending_approval',
+        mesa: mesaAsignada,
+        mesaAbierta: !!mesaAsignada,
         createdAt: serverTimestamp(),
       })
       clear()
@@ -113,16 +132,21 @@ export default function Checkout({ onBack, onSuccess }) {
         </div>
 
         {tipoEntrega === 'express' ? (
-          <label>
-            Dirección de entrega
-            <textarea
-              value={form.direccion}
-              onChange={update('direccion')}
-              placeholder="Casa, señas, distrito…"
-              rows={3}
-              required
-            />
-          </label>
+          <>
+            <div className="payment-box">
+              <p>⚠️ Todo pedido Express tiene un costo adicional por envío, que se suma al total al momento de cobrar.</p>
+            </div>
+            <label>
+              Dirección de entrega
+              <textarea
+                value={form.direccion}
+                onChange={update('direccion')}
+                placeholder="Casa, señas, distrito…"
+                rows={3}
+                required
+              />
+            </label>
+          </>
         ) : (
           <div className="payment-box">
             <h3>Pasás a recoger tu pedido</h3>
