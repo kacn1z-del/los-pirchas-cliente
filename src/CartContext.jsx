@@ -30,7 +30,7 @@ export function CartProvider({ children }) {
           i === existing ? { ...i, qty: i.qty + 1 } : i
         )
       }
-      return [...prev, { id: product.id, nombre: product.nombre, precio: product.precio, qty: 1, nota: nota || null }]
+      return [...prev, { id: product.id, nombre: product.nombre, precio: product.precio, categoria: product.categoria || null, qty: 1, nota: nota || null }]
     })
   }
 
