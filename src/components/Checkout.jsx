@@ -74,6 +74,7 @@ export default function Checkout({ onBack, onSuccess }) {
           nombre: i.nota ? `${i.nombre} (${i.nota})` : i.nombre,
           precio: i.precio,
           qty: i.qty,
+          categoria: i.categoria || null,
         })),
         total,
         paymentMethod,
