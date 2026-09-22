@@ -196,7 +196,7 @@ export default function Checkout({ onBack, onSuccess }) {
             </div>
             <p>
               Consulte monto a transferir al número{' '}
-              <strong className="mono">{SINPE_NUMBER}</strong> a nombre de Auris Calderón Carvajal.
+              <strong className="mono">{SINPE_NUMBER}</strong> a nombre de Aurices Calderón Carvajal.
             </p>
             <p className="payment-box__hint">
               Después de confirmar el pedido, comparta el comprobante por WhatsApp para agilizar la
