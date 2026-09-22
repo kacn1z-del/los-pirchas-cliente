@@ -195,11 +195,11 @@ export default function Checkout({ onBack, onSuccess }) {
               <h3>Pago por SINPE Móvil</h3>
             </div>
             <p>
-              Transferí <strong className="mono">{formatColones(total)}</strong> al número{' '}
-              <strong className="mono">{SINPE_NUMBER}</strong> a nombre de Los Pirchas.
+              Consulte monto a transferir al número{' '}
+              <strong className="mono">{SINPE_NUMBER}</strong> a nombre de Auris Calderón Carvajal.
             </p>
             <p className="payment-box__hint">
-              Después de confirmar el pedido, mandanos el comprobante por WhatsApp para agilizar la
+              Después de confirmar el pedido, comparta el comprobante por WhatsApp para agilizar la
               entrega.
             </p>
           </div>
