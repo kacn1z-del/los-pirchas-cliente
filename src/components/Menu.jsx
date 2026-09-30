@@ -45,6 +45,12 @@ const SUBCATEGORY_ORDER = {
   'bebidas calientes': ['Café', 'Té', 'Aguadulce', 'Chocolate'],
 }
 
+// Hamburguesas que requieren selección de acompañamiento
+const HAMBURGUESAS = ['Bacon Lovers', 'Texana', 'Coronel Burger', 'Queso Burgesa', 'Pulled pork']
+
+// Opciones de acompañamiento
+const ACOMPAÑAMIENTOS = ['Papas fritas', 'Papas en gajo', 'Aros de cebolla']
+
 function normalizeText(text) {
   return (text || '')
     .toString()
@@ -140,6 +146,12 @@ export default function Menu() {
   const [categoryOrder, setCategoryOrder] = useState([])
   const { addItem } = useCart()
 
+  // Estado para el modal de acompañamientos
+  const [modalAbierto, setModalAbierto] = useState(false)
+  const [platoPendiente, setPlatoPendiente] = useState(null)
+  const [acompañamientoSeleccionado, setAcompañamientoSeleccionado] = useState('')
+  const [cantidadSeleccionada, setCantidadSeleccionada] = useState(1)
+
   useEffect(() => {
     const unsub = onSnapshot(
       collection(db, 'Menu'),
@@ -164,6 +176,51 @@ export default function Menu() {
     })
     return () => unsub()
   }, [])
+
+  // Detectar si un plato es hamburguesa
+  const esHamburguesa = (nombre) => {
+    return HAMBURGUESAS.some((h) => normalizeText(nombre).includes(normalizeText(h)))
+  }
+
+  // Abrir modal de acompañamientos
+  const abrirModalAcompañamientos = (plato) => {
+    setPlatoPendiente(plato)
+    setAcompañamientoSeleccionado('')
+    setCantidadSeleccionada(1)
+    setModalAbierto(true)
+  }
+
+  // Cerrar modal
+  const cerrarModal = () => {
+    setModalAbierto(false)
+    setPlatoPendiente(null)
+    setAcompañamientoSeleccionado('')
+    setCantidadSeleccionada(1)
+  }
+
+  // Agregar plato con acompañamiento
+  const agregarConAcompañamiento = () => {
+    if (!acompañamientoSeleccionado) {
+      alert('Por favor selecciona un acompañamiento')
+      return
+    }
+
+    // Agregar el plato con el acompañamiento como nota
+    for (let i = 0; i < cantidadSeleccionada; i++) {
+      addItem(platoPendiente, acompañamientoSeleccionado)
+    }
+
+    cerrarModal()
+  }
+
+  // Manejar clic en botón "Agregar"
+  const handleAgregarClick = (plato) => {
+    if (esHamburguesa(plato.nombre)) {
+      abrirModalAcompañamientos(plato)
+    } else {
+      addItem(plato)
+    }
+  }
 
   if (loading) {
     return <div className="state-panel">Cargando menú…</div>
@@ -225,84 +282,150 @@ export default function Menu() {
   }
 
   return (
-    <div className="menu">
-      <div className="menu__search">
-        <input
-          type="search"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar en el menú (ej. bebidas, casado, pollo)"
-          className="menu__search-input"
-          aria-label="Buscar en el menú"
-        />
-        {search && (
-          <button type="button" className="menu__search-clear" onClick={() => setSearch('')} aria-label="Limpiar búsqueda">
-            ✕
-          </button>
+    <>
+      <div className="menu">
+        <div className="menu__search">
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar en el menú (ej. bebidas, casado, pollo)"
+            className="menu__search-input"
+            aria-label="Buscar en el menú"
+          />
+          {search && (
+            <button type="button" className="menu__search-clear" onClick={() => setSearch('')} aria-label="Limpiar búsqueda">
+              ✕
+            </button>
+          )}
+        </div>
+
+        {search && categories.length === 0 && (
+          <p className="state-panel__hint" style={{ padding: '0 16px' }}>
+            No se encontró nada para "{search}".
+          </p>
         )}
+
+        <nav className="category-nav" aria-label="Categorías del menú">
+          {categories.map((cat) => (
+            <button key={cat} className="category-nav__chip" onClick={() => scrollTo(slugify(cat))}>
+              {cat}
+            </button>
+          ))}
+        </nav>
+
+        {categories.map((categoria) => {
+          const horario = disponibilidadPorHorario(categoria)
+          return (
+            <section key={categoria} id={slugify(categoria)} className="menu__section">
+              <div className="ribbon">
+                <span className="ribbon__text">{categoria}</span>
+              </div>
+              {horario.mensaje && !horario.disponible && (
+                <p className="menu__schedule-hint">⏰ {horario.mensaje}</p>
+              )}
+              {groupBySubcategoria(categoria, grouped[categoria]).map((grupo) => (
+                <div key={grupo.subcategoria || '__sin_subcategoria__'}>
+                  {grupo.subcategoria && <h4 className="menu__subcategory">{grupo.subcategoria}</h4>}
+                  <div className="menu__grid">
+                    {grupo.platos.map((plato) => {
+                      const disponible = plato.disponible !== false && horario.disponible
+                      return (
+                        <article key={plato.id} className={`dish-card ${!disponible ? 'is-disabled' : ''}`}>
+                          {plato.imagenUrl && (
+                            <img src={plato.imagenUrl} alt={plato.nombre} className="dish-card__img" loading="lazy" />
+                          )}
+                          <div className="dish-card__top">
+                            <h3>{plato.nombre}</h3>
+                            <span className="dish-card__price mono">{formatColones(plato.precio)}</span>
+                          </div>
+                          {plato.descripcion && <p className="dish-card__desc">{plato.descripcion}</p>}
+                          <button
+                            className="dish-card__add"
+                            disabled={!disponible}
+                            onClick={() => handleAgregarClick(plato)}
+                            aria-label={`Agregar ${plato.nombre} al carrito`}
+                          >
+                            {plato.disponible === false
+                              ? 'No disponible'
+                              : !horario.disponible
+                              ? 'Fuera de horario'
+                              : '+ Agregar'}
+                          </button>
+                        </article>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+            </section>
+          )
+        })}
       </div>
 
-      {search && categories.length === 0 && (
-        <p className="state-panel__hint" style={{ padding: '0 16px' }}>
-          No se encontró nada para "{search}".
-        </p>
-      )}
-
-      <nav className="category-nav" aria-label="Categorías del menú">
-        {categories.map((cat) => (
-          <button key={cat} className="category-nav__chip" onClick={() => scrollTo(slugify(cat))}>
-            {cat}
-          </button>
-        ))}
-      </nav>
-
-      {categories.map((categoria) => {
-        const horario = disponibilidadPorHorario(categoria)
-        return (
-          <section key={categoria} id={slugify(categoria)} className="menu__section">
-            <div className="ribbon">
-              <span className="ribbon__text">{categoria}</span>
+      {/* Modal de acompañamientos */}
+      {modalAbierto && (
+        <>
+          <div className="modal-overlay" onClick={cerrarModal}></div>
+          <div className="modal">
+            <div className="modal__header">
+              <h3>Elige un acompañamiento</h3>
+              <button className="modal__close" onClick={cerrarModal}>
+                ✕
+              </button>
             </div>
-            {horario.mensaje && !horario.disponible && (
-              <p className="menu__schedule-hint">⏰ {horario.mensaje}</p>
-            )}
-            {groupBySubcategoria(categoria, grouped[categoria]).map((grupo) => (
-              <div key={grupo.subcategoria || '__sin_subcategoria__'}>
-                {grupo.subcategoria && <h4 className="menu__subcategory">{grupo.subcategoria}</h4>}
-                <div className="menu__grid">
-                  {grupo.platos.map((plato) => {
-                    const disponible = plato.disponible !== false && horario.disponible
-                    return (
-                      <article key={plato.id} className={`dish-card ${!disponible ? 'is-disabled' : ''}`}>
-                        {plato.imagenUrl && (
-                          <img src={plato.imagenUrl} alt={plato.nombre} className="dish-card__img" loading="lazy" />
-                        )}
-                        <div className="dish-card__top">
-                          <h3>{plato.nombre}</h3>
-                          <span className="dish-card__price mono">{formatColones(plato.precio)}</span>
-                        </div>
-                        {plato.descripcion && <p className="dish-card__desc">{plato.descripcion}</p>}
-                        <button
-                          className="dish-card__add"
-                          disabled={!disponible}
-                          onClick={() => addItem(plato)}
-                          aria-label={`Agregar ${plato.nombre} al carrito`}
-                        >
-                          {plato.disponible === false
-                            ? 'No disponible'
-                            : !horario.disponible
-                            ? 'Fuera de horario'
-                            : '+ Agregar'}
-                        </button>
-                      </article>
-                    )
-                  })}
+
+            <div className="modal__body">
+              <p className="modal__product-name">{platoPendiente?.nombre}</p>
+
+              <div className="modal__sides">
+                <label className="modal__label">Acompañamiento</label>
+                {ACOMPAÑAMIENTOS.map((acomp) => (
+                  <div key={acomp} className="modal__radio-group">
+                    <input
+                      type="radio"
+                      id={`acomp-${acomp}`}
+                      name="acompañamiento"
+                      value={acomp}
+                      checked={acompañamientoSeleccionado === acomp}
+                      onChange={(e) => setAcompañamientoSeleccionado(e.target.value)}
+                    />
+                    <label htmlFor={`acomp-${acomp}`}>{acomp}</label>
+                  </div>
+                ))}
+              </div>
+
+              <div className="modal__qty">
+                <label className="modal__label">Cantidad</label>
+                <div className="modal__qty-controls">
+                  <button
+                    onClick={() => setCantidadSeleccionada(Math.max(1, cantidadSeleccionada - 1))}
+                    type="button"
+                  >
+                    −
+                  </button>
+                  <span>{cantidadSeleccionada}</span>
+                  <button
+                    onClick={() => setCantidadSeleccionada(cantidadSeleccionada + 1)}
+                    type="button"
+                  >
+                    +
+                  </button>
                 </div>
               </div>
-            ))}
-          </section>
-        )
-      })}
-    </div>
+            </div>
+
+            <div className="modal__footer">
+              <button className="btn-secondary" onClick={cerrarModal} type="button">
+                Cancelar
+              </button>
+              <button className="btn-primary" onClick={agregarConAcompañamiento} type="button">
+                Agregar al carrito
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </>
   )
 }
