@@ -15,10 +15,6 @@ function slugify(text) {
     .replace(/[^a-z0-9]+/g, '-')
 }
 
-// Orden en que aparecen las categorías en el menú físico de Los Pirchas.
-// Cualquier categoría que no esté en esta lista (por ejemplo si se agrega
-// una nueva desde el panel admin) aparece al final, en el orden en que
-// llegó de Firestore, para no perderla de vista.
 const CATEGORY_ORDER = [
   'Menú infantil',
   'Especialidades Mexicanas',
@@ -38,17 +34,11 @@ const CATEGORY_ORDER = [
   'Noche de Bocas',
 ]
 
-// Orden de subcategorías dentro de una categoría, cuando aplica (por
-// ejemplo, dentro de "Bebidas calientes": Café, Té, Aguadulce, Chocolate).
-// Cualquier subcategoría no listada aquí aparece al final.
 const SUBCATEGORY_ORDER = {
   'bebidas calientes': ['Café', 'Té', 'Aguadulce', 'Chocolate'],
 }
 
-// Hamburguesas que requieren selección de acompañamiento
 const HAMBURGUESAS = ['Bacon Lovers', 'Texana', 'Coronel Burger', 'Queso Burgesa', 'Pulled pork']
-
-// Opciones de acompañamiento
 const ACOMPAÑAMIENTOS = ['Papas fritas', 'Papas en gajo', 'Aros de cebolla']
 
 function normalizeText(text) {
@@ -60,17 +50,10 @@ function normalizeText(text) {
     .replace(/[\u0300-\u036f]/g, '')
 }
 
-// Horarios especiales según el menú físico:
-//   Menú/Plato Ejecutivo: lunes a viernes, 11 a.m. a 4 p.m.
-//   Noche de Bocas: lunes a jueves, 5 p.m. a 10 p.m.
-// Cualquier otra categoría no tiene restricción de horario.
-// Se busca "incluye la palabra" en vez de comparar el nombre exacto, para
-// que esto no se rompa si el nombre de la categoría cambia un poco (ej.
-// "Plato Ejecutivo" → "Menú Ejecutivo") — ya pasó una vez.
 function disponibilidadPorHorario(categoria) {
   const cat = normalizeText(categoria)
   const now = new Date()
-  const dia = now.getDay() // 0=domingo … 6=sábado
+  const dia = now.getDay()
   const minutos = now.getHours() * 60 + now.getMinutes()
 
   if (cat.includes('ejecutivo')) {
@@ -84,28 +67,19 @@ function disponibilidadPorHorario(categoria) {
   return { disponible: true, mensaje: null }
 }
 
-// customOrder es el orden que el admin haya guardado en Firestore
-// (Config/categoryOrder). Si existe, manda sobre CATEGORY_ORDER; si no
-// existe todavía (o está vacío), se usa CATEGORY_ORDER como antes.
 function sortCategories(categories, customOrder) {
   const base = customOrder && customOrder.length > 0 ? customOrder : CATEGORY_ORDER
   const priority = base.map(normalizeText)
   return [...categories].sort((a, b) => {
     const ia = priority.indexOf(normalizeText(a))
     const ib = priority.indexOf(normalizeText(b))
-    if (ia === -1 && ib === -1) return 0 // ninguna está en la lista: dejar como está
-    if (ia === -1) return 1 // "a" no está en la lista: va después
-    if (ib === -1) return -1 // "b" no está en la lista: va después
+    if (ia === -1 && ib === -1) return 0
+    if (ia === -1) return 1
+    if (ib === -1) return -1
     return ia - ib
   })
 }
 
-// Agrupa los platos de una categoría por subcategoría, si al menos uno la
-// tiene definida. Devuelve una lista de grupos [{ subcategoria, platos }] —
-// subcategoria es null para el grupo de platos sin subcategoría (se
-// muestran primero, sin encabezado). Si ningún plato de la categoría tiene
-// subcategoría, devuelve un solo grupo sin encabezado (comportamiento
-// idéntico al de antes).
 function groupBySubcategoria(categoria, platos) {
   const tieneSubcategorias = platos.some((p) => p.subcategoria)
   if (!tieneSubcategorias) {
@@ -125,7 +99,7 @@ function groupBySubcategoria(categoria, platos) {
   const entries = [...grupos.entries()]
   entries.sort(([a], [b]) => {
     if (a === '' && b === '') return 0
-    if (a === '') return -1 // sin subcategoría va primero
+    if (a === '') return -1
     if (b === '') return 1
     const ia = ordenNormalizado.indexOf(normalizeText(a))
     const ib = ordenNormalizado.indexOf(normalizeText(b))
@@ -146,7 +120,6 @@ export default function Menu() {
   const [categoryOrder, setCategoryOrder] = useState([])
   const { addItem } = useCart()
 
-  // Estado para el modal de acompañamientos
   const [modalAbierto, setModalAbierto] = useState(false)
   const [platoPendiente, setPlatoPendiente] = useState(null)
   const [acompañamientoSeleccionado, setAcompañamientoSeleccionado] = useState('')
@@ -167,9 +140,6 @@ export default function Menu() {
     return () => unsub()
   }, [])
 
-  // Orden de categorías que haya guardado el admin (panel > Orden de
-  // categorías). Si todavía no guardó ninguno, se usa el orden fijo
-  // (CATEGORY_ORDER) como antes.
   useEffect(() => {
     const unsub = onSnapshot(doc(db, 'Config', 'categoryOrder'), (snap) => {
       setCategoryOrder(snap.exists() && Array.isArray(snap.data().orden) ? snap.data().orden : [])
@@ -177,12 +147,10 @@ export default function Menu() {
     return () => unsub()
   }, [])
 
-  // Detectar si un plato es hamburguesa
   const esHamburguesa = (nombre) => {
     return HAMBURGUESAS.some((h) => normalizeText(nombre).includes(normalizeText(h)))
   }
 
-  // Abrir modal de acompañamientos
   const abrirModalAcompañamientos = (plato) => {
     setPlatoPendiente(plato)
     setAcompañamientoSeleccionado('')
@@ -190,7 +158,6 @@ export default function Menu() {
     setModalAbierto(true)
   }
 
-  // Cerrar modal
   const cerrarModal = () => {
     setModalAbierto(false)
     setPlatoPendiente(null)
@@ -198,14 +165,12 @@ export default function Menu() {
     setCantidadSeleccionada(1)
   }
 
-  // Agregar plato con acompañamiento
   const agregarConAcompañamiento = () => {
     if (!acompañamientoSeleccionado) {
       alert('Por favor selecciona un acompañamiento')
       return
     }
 
-    // Agregar el plato con el acompañamiento como nota
     for (let i = 0; i < cantidadSeleccionada; i++) {
       addItem(platoPendiente, acompañamientoSeleccionado)
     }
@@ -213,7 +178,6 @@ export default function Menu() {
     cerrarModal()
   }
 
-  // Manejar clic en botón "Agregar"
   const handleAgregarClick = (plato) => {
     if (esHamburguesa(plato.nombre)) {
       abrirModalAcompañamientos(plato)
@@ -247,19 +211,12 @@ export default function Menu() {
   }
 
   const term = normalizeText(search)
-  // Si el cliente busca "bebidas", queremos que le salga todo lo que
-  // tenga que ver con bebidas aunque el nombre de la categoría en
-  // Firestore sea más específico (ej. "Gaseosas y refrescos", "Cerveza
-  // Nacional", "Jugos", "Smoothies"). Por eso, además de nombre/categoría
-  // exactos, buscamos también por estas palabras "paraguas".
   const BEBIDA_ALIASES = ['bebida', 'batido', 'gaseosa', 'cerveza', 'licor', 'jugo', 'smoothie', 'cafe', 'helado', 'refresco']
   const matchesSearch = (item) => {
     if (!term) return true
     const nombre = normalizeText(item.nombre)
     const categoria = normalizeText(item.categoria)
     if (nombre.includes(term) || categoria.includes(term)) return true
-    // "bebidas" (o cualquier alias) también debe traer todas las
-    // categorías de bebidas, aunque no se llamen literalmente "bebidas"
     if (BEBIDA_ALIASES.some((alias) => alias.includes(term) || term.includes(alias))) {
       return BEBIDA_ALIASES.some((alias) => categoria.includes(alias))
     }
@@ -363,7 +320,6 @@ export default function Menu() {
         })}
       </div>
 
-      {/* Modal de acompañamientos */}
       {modalAbierto && (
         <>
           <div className="modal-overlay" onClick={cerrarModal}></div>
