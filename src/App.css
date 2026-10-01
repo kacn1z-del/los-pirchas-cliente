@@ -1168,3 +1168,80 @@
 .btn-secondary:hover {
   background: #d8d8d8;
 }
+/* Select modal — minimalista como Catering Alba */
+.modal-select-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-select {
+  background: var(--cream-100);
+  border-radius: 8px;
+  width: 90%;
+  max-width: 300px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.modal-select h3 {
+  margin: 0 0 16px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--char-950);
+}
+
+.modal-select label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.modal-select label span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-600);
+  text-transform: uppercase;
+}
+
+.modal-select select {
+  padding: 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  font-size: 14px;
+  color: var(--ink-900);
+  background: white;
+  cursor: pointer;
+}
+
+.modal-select select:focus {
+  outline: none;
+  border-color: var(--ember-700);
+}
+
+.modal-select__buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.modal-select__buttons button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--line);
+  color: var(--ink-900);
+}
+
+.modal-select__buttons .btn-confirmar {
+  background: var(--ember-700);
+  color: white;
+}
