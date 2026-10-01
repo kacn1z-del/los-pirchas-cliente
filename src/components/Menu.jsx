@@ -123,7 +123,6 @@ export default function Menu() {
   const [modalAbierto, setModalAbierto] = useState(false)
   const [platoPendiente, setPlatoPendiente] = useState(null)
   const [acompañamientoSeleccionado, setAcompañamientoSeleccionado] = useState('')
-  const [cantidadSeleccionada, setCantidadSeleccionada] = useState(1)
 
   useEffect(() => {
     const unsub = onSnapshot(
@@ -151,10 +150,9 @@ export default function Menu() {
     return HAMBURGUESAS.some((h) => normalizeText(nombre).includes(normalizeText(h)))
   }
 
-  const abrirModalAcompañamientos = (plato) => {
+  const abrirModal = (plato) => {
     setPlatoPendiente(plato)
     setAcompañamientoSeleccionado('')
-    setCantidadSeleccionada(1)
     setModalAbierto(true)
   }
 
@@ -162,25 +160,20 @@ export default function Menu() {
     setModalAbierto(false)
     setPlatoPendiente(null)
     setAcompañamientoSeleccionado('')
-    setCantidadSeleccionada(1)
   }
 
   const agregarConAcompañamiento = () => {
     if (!acompañamientoSeleccionado) {
-      alert('Por favor selecciona un acompañamiento')
+      alert('Selecciona un acompañamiento')
       return
     }
-
-    for (let i = 0; i < cantidadSeleccionada; i++) {
-      addItem(platoPendiente, acompañamientoSeleccionado)
-    }
-
+    addItem(platoPendiente, acompañamientoSeleccionado)
     cerrarModal()
   }
 
   const handleAgregarClick = (plato) => {
     if (esHamburguesa(plato.nombre)) {
-      abrirModalAcompañamientos(plato)
+      abrirModal(plato)
     } else {
       addItem(plato)
     }
@@ -323,61 +316,24 @@ export default function Menu() {
       {modalAbierto && (
         <>
           <div className="modal-overlay" onClick={cerrarModal}></div>
-          <div className="modal">
-            <div className="modal__header">
-              <h3>Elige un acompañamiento</h3>
-              <button className="modal__close" onClick={cerrarModal}>
-                ✕
-              </button>
-            </div>
+          <div className="modal-simple">
+            <h3>Elige un acompañamiento</h3>
+            <p className="modal-simple__product">{platoPendiente?.nombre}</p>
+            
+            <select 
+              value={acompañamientoSeleccionado}
+              onChange={(e) => setAcompañamientoSeleccionado(e.target.value)}
+              className="modal-simple__select"
+            >
+              <option value="">-- Selecciona una opción --</option>
+              {ACOMPAÑAMIENTOS.map((acomp) => (
+                <option key={acomp} value={acomp}>{acomp}</option>
+              ))}
+            </select>
 
-            <div className="modal__body">
-              <p className="modal__product-name">{platoPendiente?.nombre}</p>
-
-              <div className="modal__sides">
-                <label className="modal__label">Acompañamiento</label>
-                {ACOMPAÑAMIENTOS.map((acomp) => (
-                  <div key={acomp} className="modal__radio-group">
-                    <input
-                      type="radio"
-                      id={`acomp-${acomp}`}
-                      name="acompañamiento"
-                      value={acomp}
-                      checked={acompañamientoSeleccionado === acomp}
-                      onChange={(e) => setAcompañamientoSeleccionado(e.target.value)}
-                    />
-                    <label htmlFor={`acomp-${acomp}`}>{acomp}</label>
-                  </div>
-                ))}
-              </div>
-
-              <div className="modal__qty">
-                <label className="modal__label">Cantidad</label>
-                <div className="modal__qty-controls">
-                  <button
-                    onClick={() => setCantidadSeleccionada(Math.max(1, cantidadSeleccionada - 1))}
-                    type="button"
-                  >
-                    −
-                  </button>
-                  <span>{cantidadSeleccionada}</span>
-                  <button
-                    onClick={() => setCantidadSeleccionada(cantidadSeleccionada + 1)}
-                    type="button"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="modal__footer">
-              <button className="btn-secondary" onClick={cerrarModal} type="button">
-                Cancelar
-              </button>
-              <button className="btn-primary" onClick={agregarConAcompañamiento} type="button">
-                Agregar al carrito
-              </button>
+            <div className="modal-simple__buttons">
+              <button onClick={cerrarModal} className="btn-secondary">Cancelar</button>
+              <button onClick={agregarConAcompañamiento} className="btn-primary">Agregar</button>
             </div>
           </div>
         </>
