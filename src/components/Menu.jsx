@@ -120,9 +120,8 @@ export default function Menu() {
   const [categoryOrder, setCategoryOrder] = useState([])
   const { addItem } = useCart()
 
-  const [modalAbierto, setModalAbierto] = useState(false)
   const [platoPendiente, setPlatoPendiente] = useState(null)
-  const [acompañamientoSeleccionado, setAcompañamientoSeleccionado] = useState('')
+  const [acompañamientoSelect, setAcompañamientoSelect] = useState('')
 
   useEffect(() => {
     const unsub = onSnapshot(
@@ -150,33 +149,23 @@ export default function Menu() {
     return HAMBURGUESAS.some((h) => normalizeText(nombre).includes(normalizeText(h)))
   }
 
-  const abrirModal = (plato) => {
-    setPlatoPendiente(plato)
-    setAcompañamientoSeleccionado('')
-    setModalAbierto(true)
-  }
-
-  const cerrarModal = () => {
-    setModalAbierto(false)
-    setPlatoPendiente(null)
-    setAcompañamientoSeleccionado('')
-  }
-
-  const agregarConAcompañamiento = () => {
-    if (!acompañamientoSeleccionado) {
-      alert('Selecciona un acompañamiento')
-      return
-    }
-    addItem(platoPendiente, acompañamientoSeleccionado)
-    cerrarModal()
-  }
-
   const handleAgregarClick = (plato) => {
     if (esHamburguesa(plato.nombre)) {
-      abrirModal(plato)
+      setPlatoPendiente(plato)
+      setAcompañamientoSelect('')
     } else {
       addItem(plato)
     }
+  }
+
+  const confirmarAcompañamiento = () => {
+    if (!acompañamientoSelect) {
+      alert('Selecciona un acompañamiento')
+      return
+    }
+    addItem(platoPendiente, acompañamientoSelect)
+    setPlatoPendiente(null)
+    setAcompañamientoSelect('')
   }
 
   if (loading) {
@@ -313,30 +302,29 @@ export default function Menu() {
         })}
       </div>
 
-      {modalAbierto && (
-        <>
-          <div className="modal-overlay" onClick={cerrarModal}></div>
-          <div className="modal-simple">
-            <h3>Elige un acompañamiento</h3>
-            <p className="modal-simple__product">{platoPendiente?.nombre}</p>
-            
-            <select 
-              value={acompañamientoSeleccionado}
-              onChange={(e) => setAcompañamientoSeleccionado(e.target.value)}
-              className="modal-simple__select"
-            >
-              <option value="">-- Selecciona una opción --</option>
-              {ACOMPAÑAMIENTOS.map((acomp) => (
-                <option key={acomp} value={acomp}>{acomp}</option>
-              ))}
-            </select>
-
-            <div className="modal-simple__buttons">
-              <button onClick={cerrarModal} className="btn-secondary">Cancelar</button>
-              <button onClick={agregarConAcompañamiento} className="btn-primary">Agregar</button>
+      {platoPendiente && (
+        <div className="modal-select-overlay">
+          <div className="modal-select">
+            <h3>{platoPendiente.nombre}</h3>
+            <label>
+              <span>Acompañamiento</span>
+              <select
+                value={acompañamientoSelect}
+                onChange={(e) => setAcompañamientoSelect(e.target.value)}
+                autoFocus
+              >
+                <option value="">Selecciona una opción</option>
+                {ACOMPAÑAMIENTOS.map((a) => (
+                  <option key={a} value={a}>{a}</option>
+                ))}
+              </select>
+            </label>
+            <div className="modal-select__buttons">
+              <button onClick={() => setPlatoPendiente(null)}>Cancelar</button>
+              <button onClick={confirmarAcompañamiento} className="btn-confirmar">Agregar</button>
             </div>
           </div>
-        </>
+        </div>
       )}
     </>
   )
