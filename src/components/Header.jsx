@@ -1,6 +1,6 @@
 import { useCart } from '../CartContext'
 
-export default function Header({ onCartClick, onReservarClick }) {
+export default function Header({ onCartClick, onReservarClick, onTarjetaClick }) {
   const { count } = useCart()
 
   return (
@@ -20,6 +20,9 @@ export default function Header({ onCartClick, onReservarClick }) {
           <span className="bar__name">Los Pirchas</span>
         </div>
         <div className="bar__actions">
+          <button className="bar__reservar" onClick={onTarjetaClick}>
+            🎟️ Mi tarjeta
+          </button>
           <button className="bar__reservar" onClick={onReservarClick}>
             📅 Reservar
           </button>
