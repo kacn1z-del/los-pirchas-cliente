@@ -7,6 +7,7 @@ import CartDrawer from './components/CartDrawer'
 import Checkout from './components/Checkout'
 import OrderStatus from './components/OrderStatus'
 import Reservation from './components/Reservation'
+import MiTarjeta from './components/MiTarjeta'
 import InstallPrompt from './components/InstallPrompt'
 import SocialLinks from './components/SocialLinks'
 import ReviewsSection from './components/ReviewsSection'
@@ -22,7 +23,7 @@ const mesaDesdeQR = new URLSearchParams(window.location.search).get('mesa')
 
 export default function App() {
   const [cartOpen, setCartOpen] = useState(false)
-  const [view, setView] = useState('menu') // 'menu' | 'checkout' | 'confirmation' | 'reserva'
+  const [view, setView] = useState('menu') // 'menu' | 'checkout' | 'confirmation' | 'reserva' | 'tarjeta'
   const [completedOrder, setCompletedOrder] = useState(null)
 
   const handleCheckout = () => {
@@ -57,7 +58,11 @@ export default function App() {
         {view !== 'confirmation' && (
           <>
             <InstallPrompt appName="Los Pirchas" />
-            <Header onCartClick={() => setCartOpen(true)} onReservarClick={() => setView('reserva')} />
+            <Header
+              onCartClick={() => setCartOpen(true)}
+              onReservarClick={() => setView('reserva')}
+              onTarjetaClick={() => setView('tarjeta')}
+            />
           </>
         )}
 
@@ -67,6 +72,7 @@ export default function App() {
             <Checkout onBack={() => setView('menu')} onSuccess={handleSuccess} />
           )}
           {view === 'reserva' && <Reservation onBack={() => setView('menu')} />}
+          {view === 'tarjeta' && <MiTarjeta onBack={() => setView('menu')} />}
           {view === 'confirmation' && completedOrder && (
             <OrderStatus
               orderId={completedOrder.orderId}
