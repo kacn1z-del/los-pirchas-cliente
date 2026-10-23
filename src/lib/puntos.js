@@ -1,8 +1,9 @@
 // Reglas del programa de cliente frecuente de Los Pirchas.
 // Si cambian, se cambian solo aquí.
 
-export const PUNTOS_POR_COLON = 1000; // 1 punto por cada ₡1.000 cobrados
-export const PUNTOS_PARA_CANJE = 100; // con 100 puntos se canjea un plato
+export const PUNTOS_POR_COLON = 1000; // 1 punto (y 1 sello) por cada ₡1.000 cobrados
+export const SELLOS_TOTALES = 100; // la tarjeta tiene 100 sellos
+export const PUNTOS_PARA_CANJE = 100; // con 100 puntos (sellos llenos) se canjea un plato
 export const DESCUENTO_CANJE_MAXIMO = 5000; // el plato canjeado vale hasta ₡5.000
 
 // Normaliza un teléfono de Costa Rica a 506 + 8 dígitos.
