@@ -21,7 +21,7 @@ export default function Header({ onCartClick, onReservarClick, onTarjetaClick })
         </div>
         <div className="bar__actions">
           <button className="bar__reservar" onClick={onTarjetaClick}>
-            🎟️ Mi tarjeta
+            🎟️ Tarjeta
           </button>
           <button className="bar__reservar" onClick={onReservarClick}>
             📅 Reservar
