@@ -1245,3 +1245,33 @@
   background: var(--ember-700);
   color: white;
 }
+
+/* Celular: la barra no debe empujar la página hacia la derecha */
+@media (max-width: 480px) {
+  .bar {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .bar__brand {
+    min-width: 0;
+    flex-shrink: 1;
+  }
+  .bar__name {
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .bar__actions {
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .bar__reservar {
+    font-size: 12px;
+    padding: 6px 9px;
+  }
+  .bar__cart {
+    width: 34px;
+    height: 34px;
+  }
+}
