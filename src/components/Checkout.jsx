@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { addDoc, collection, getDocs, query, serverTimestamp, where } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useCart } from '../CartContext'
+import { asegurarTarjeta } from '../lib/tarjeta'
 
 // Mismos 3 cupos que usa el admin en PhoneOrderPanel.jsx para el plano de
 // Salón — un pedido Express de acá ocupa uno igual que uno telefónico.
@@ -83,6 +84,15 @@ export default function Checkout({ onBack, onSuccess }) {
         mesaAbierta: !!mesaAsignada,
         createdAt: serverTimestamp(),
       })
+
+      // Crea la tarjeta de cliente frecuente la primera vez. Si falla, el
+      // pedido ya quedó creado y no se detiene nada.
+      try {
+        await asegurarTarjeta({ nombre: form.nombre.trim(), telefono: form.telefono.trim() })
+      } catch (err) {
+        console.error('No se pudo crear la tarjeta:', err)
+      }
+
       clear()
       onSuccess(orderRef.id, form)
     } catch (err) {
